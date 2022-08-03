@@ -1,0 +1,316 @@
+* {
+    margin: 0;
+    padding: 0;
+    font-family: 'Roboto', sans-serif;
+}
+
+a {
+    text-decoration: none;
+    color: black;
+}
+
+body {
+    height: 100vh;
+}
+
+article {
+    min-height: 100%;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+}
+
+header {
+    background-color: #353636;
+    margin-bottom: 50px;
+}
+
+.header-wrapper {
+    width: 60%;
+    min-width: 400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+}
+
+.header-wrapper>h1>a {
+    color:#fff;
+}
+
+.user {
+    display: flex;
+    gap: 25px;
+}
+
+@media screen and (max-width:800px) {
+    .header-wrapper {
+        flex-direction: column;
+    }
+    .header-wrapper>h1 {
+        padding-bottom: 20px;
+    }
+}
+
+@media screen and (max-width:500px) {
+    .header-wrapper {
+        min-width: 0;
+    }
+    .user {
+        flex-direction: column;
+    }
+}
+
+.user>a {
+    color:#fff;
+    border: 1px solid #fff;
+    padding: 10px 15px;
+}
+
+.user>a:hover {
+    background-color: #fff;
+    color: #000;
+}
+
+.auth {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+    min-width: 300px;
+}
+
+.sign {
+    color:#fff;
+    border: 1px solid #fff;
+    padding: 10px 15px;
+    transition: all .1s linear;
+}
+
+.sign:hover {
+    color: #000;
+    background-color: #fff;
+}
+
+.main-wrapper {
+    width: 80%;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+.post {
+    display: flex;
+    justify-content: space-between;
+}
+
+.post-body {
+    width: 80%;
+    padding-right: 50px;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    row-gap: 20px;
+}
+
+.post-title {
+    word-break: break-all;
+}
+
+.post-description {
+    white-space: pre-line;
+    line-height: 25px;
+    word-break: break-all;
+}
+
+.post-info {
+    width: 20%;
+    padding-left: 50px;
+    border-left: 2px solid black;
+    display: flex;
+    flex-direction: column;
+    row-gap: 30px;
+}
+
+.post-info>h2 {
+    border-bottom: 2px solid black;
+}
+
+@media screen and (max-width:700px) {
+    .post {
+        flex-direction: column;
+    }
+    .post-body, .post-info {
+        padding: 0;
+        width: 100%;
+    }
+
+    .post-info {
+        margin-top: 50px;
+        border-left: 0;
+    }
+}
+
+.reaction {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.react {
+    display: flex;
+    font-size: 26px;
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    min-height: 50px;
+    background-color: black;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+  
+    /* Position the tooltip */
+    position: absolute;
+    z-index: 1;
+  }
+  
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+}
+
+.react button {
+    border: none;
+    background: none;
+    cursor: pointer;
+    text-align: center;
+}
+
+.react i {
+    font-size: 20px;
+}
+
+#like>i:hover {
+    color: green;
+}
+
+#dislike>i:hover {
+    color: red;
+}
+
+.tags {
+    font-size: 20px;
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    column-gap: 15px;
+    row-gap: 15px;
+}
+
+.tag {
+    padding: 5px 10px;
+    border: 2px solid black;
+    transition: all .1s linear;
+}
+
+.tag:hover {
+    background-color: black;
+    color: #fff;
+}
+
+.similar-posts {
+    display: flex;
+    flex-direction: column;
+    row-gap: 10px;
+    max-width: 100%;
+    word-wrap: break-word;
+}
+
+.main-wrapper>h1 {
+    margin: 50px 0;
+    border-bottom: 2px solid black;
+}
+
+.comments {
+    display: flex;
+    margin-bottom: 50px;
+}
+
+.all-comments {
+    width: 80%;
+    padding-right: 50px;
+    display: flex;
+    flex-direction: column;
+    row-gap: 15px;
+    word-wrap: break-word;
+}
+
+.send-comment {
+    width: 20%;
+    padding-left: 50px;
+    display: flex;
+    flex-direction: column;
+}
+
+.send-comment>fieldset {
+    border: 2px solid black;
+    margin-bottom: 10px;
+    padding-left: 10px;
+}
+
+.send-comment>fieldset>textarea {
+    display: block;
+    box-sizing: border-box;
+    resize: none;
+    width: 100%;
+    outline: none;
+    margin: 0;
+    background: #fff;
+    border: none;
+    font-size: 20px;
+    color: #000;
+    padding: .8em .5em;
+}
+
+.send-comment>button {
+    all: unset;
+    border: 2px solid black;
+    cursor: pointer;
+    text-align: center;
+    transition: all .1s linear;
+}
+
+.send-comment>button:hover {
+    background-color: #000;
+    color: #fff;
+}
+
+@media screen and (max-width:700px) {
+    .comments {
+        flex-direction: column;
+        row-gap: 30px;
+    }
+    .all-comments,.send-comment {
+        width: 100%;
+        padding: 0;
+    }
+}
+
+.comment-reaction {
+    display: flex;
+}
+
+.comment-reaction button {
+    all: unset;
+    cursor: pointer;
+}
+
+footer {
+    background-color: lightgray;
+    height: 100px;
+}

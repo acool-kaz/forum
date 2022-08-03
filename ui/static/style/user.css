@@ -1,0 +1,165 @@
+* {
+    margin: 0;
+    padding: 0;
+    font-family: 'Roboto', sans-serif;
+}
+
+a {
+    text-decoration: none;
+    color: black;
+}
+
+body {
+    height: 100vh;
+}
+
+article {
+    min-height: 100%;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+}
+
+header {
+    background-color: #353636;
+    margin-bottom: 50px;
+}
+
+.header-wrapper {
+    width: 60%;
+    min-width: 400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+}
+
+.header-wrapper>h1>a {
+    color:#fff;
+}
+
+.user {
+    display: flex;
+    gap: 25px;
+}
+
+@media screen and (max-width:800px) {
+    .header-wrapper {
+        flex-direction: column;
+    }
+    .header-wrapper>h1 {
+        padding-bottom: 20px;
+    }
+}
+
+@media screen and (max-width:500px) {
+    .header-wrapper {
+        min-width: 0;
+    }
+    .user {
+        flex-direction: column;
+    }
+}
+
+.user>a {
+    color:#fff;
+    border: 1px solid #fff;
+    padding: 10px 15px;
+}
+
+.user>a:hover {
+    background-color: #fff;
+    color: #000;
+}
+
+.auth {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+    min-width: 300px;
+}
+
+.sign {
+    color:#fff;
+    border: 1px solid #fff;
+    padding: 10px 15px;
+    transition: all .1s linear;
+}
+
+.sign:hover {
+    color: #000;
+    background-color: #fff;
+}
+
+.main-wrapper {
+    width: 80%;
+    max-width: 1500px;
+    margin: 0 auto;
+}
+
+.filter {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.filter a {
+    border: 1px solid black;
+    padding: 5px 10px;
+    transition: all .1s linear;
+}
+
+.filter a:hover {
+    background-color: #000;
+    color: #fff;
+}
+
+.post {
+    width: 80%;
+    max-width: 1500px;
+    margin: 20px auto;
+}
+
+fieldset {
+    padding: 10px;
+}
+
+legend {
+    margin-right: 20px;
+}
+
+.post-title {
+    word-break: break-all;
+}
+
+.post-content {
+    max-width: 100%;
+    word-wrap: break-word;
+    height:50px;
+    line-height:50px;
+    word-break:break-all;
+    overflow: hidden;
+    /* text-overflow: ellipsis; */
+}
+
+.post-footer {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.tag {
+    border: 1px solid black;
+    padding: 2px 5px;
+    margin: 5px;
+    transition: all .1s linear;
+}
+
+.tag:hover {
+    background-color: black;
+    color: #fff;
+}
+
+footer {
+    background-color: lightgray;
+    height: 100px;
+}

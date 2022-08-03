@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/static/style/createPost.css">
+    <title>Document</title>
+</head>
+
+<body>
+    <a href="/">Home</a>
+    <form action="/post/create" method="post" autocomplete="off">
+        <h1>Create Post</h1>
+        <p>
+            <label for="Title">Title</label>
+            <input id="Title" type="text" name="title" required>
+        </p>
+        <p>
+            <label for="Description">Description</label>
+            <textarea name="description" id="Description"></textarea>
+        </p>
+        <p>
+            <label for="Category">Category</label>
+            <input type="text" name="category" id="Category" oninput="func(this)">
+            <div class="shown-categories"></div>
+        </p>
+        <input type="text" name="category" class="category">
+        <button>Create</button>
+    </form>
+    <script src="/static/script/createPost.js"></script>
+</body>
+
+</html>
