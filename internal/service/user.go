@@ -7,6 +7,7 @@ import (
 
 type User interface {
 	GetPostByUsername(username string) ([]models.Post, error)
+	GetUserByUsername(username string) (models.User, error)
 }
 
 type UserService struct {
@@ -32,4 +33,8 @@ func (s *UserService) GetPostByUsername(username string) ([]models.Post, error) 
 		posts[i].Category = category
 	}
 	return posts, nil
+}
+
+func (s *UserService) GetUserByUsername(username string) (models.User, error) {
+	return s.storage.GetUserByUsername(username)
 }

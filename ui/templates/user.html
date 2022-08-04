@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -7,50 +8,79 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="/static/style/user.css">
     <title>Document</title>
 </head>
+
 <body>
     <article>
         <header>
             <div class="header-wrapper">
                 <h1><a href="/">Forum</a></h1>
-                {{ if .User.Username }}
-                <div class="user">
-                    <a href="/profile">Profile <i class="bi bi-person"></i></a>
-                    <a href="/post/create">Create Post<i class="bi bi-pencil-square"></i></a>
-                    <a href="/auth/logout">Log-Out <i class="bi bi-box-arrow-right"></i></a>
-                </div>
-                {{ else }}
-                <div class="auth">
-                    <a href="/auth/signin" class="sign">Sign-In</a>
-                    <a href="/auth/signup" class="sign">Sign-Up</a>
-                </div>
+                {{ if ne .User.Username .ProfileUser.Username }}
+                    {{ if .User.Username }}
+                    <div class="user-header">
+                        <a href="/profile/{{ .User.Username }}">Profile <i class="bi bi-person"></i></a>
+                        <a href="/post/create">Create Post<i class="bi bi-pencil-square"></i></a>
+                        <a href="/auth/logout">Log-Out <i class="bi bi-box-arrow-right"></i></a>
+                    </div>
+                    {{ else }}
+                    <div class="auth">
+                        <a href="/auth/signin" class="sign">Sign-In</a>
+                        <a href="/auth/signup" class="sign">Sign-Up</a>
+                    </div>
+                    {{ end }}
                 {{ end }}
             </div>
         </header>
         <main>
             <div class="main-wrapper">
-                {{ range .Posts }}
-                <div class="post">
-                    <fieldset>
-                        <legend align="right">
-                            <h3>{{ .Creater }}</h3>
-                        </legend>
-                        <div class="post-title">
-                            <h3><a href="/post/{{ .Id }}">{{ .Title }}</a></h3>
+                <div class="main-card">
+                    <div class="card">
+                        <div class="card-header">
+                            <h1>{{ .ProfileUser.Username }}</h1>
                         </div>
-                        <div class="post-content">
-                            {{ .Description }}
+                        <div class="card-about">
+                            <h1>ABOUT</h1>
+                            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+                                ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+                                ullamco laboris nisi ut aliquip ex ea commodo consequat. </p>
                         </div>
-                        <div class="post-footer">
-                            {{ range .Category }}
-                            <a href="/?category={{ . }}" class="tag">{{ . }}</a>
-                            {{ end }}
+                        <div class="card-info">
+                            <p>POSTS - 12</p>
                         </div>
-                    </fieldset>
+                    </div>
+                    {{ if eq .User.Username .ProfileUser.Username }}
+                    <div class="user">
+                        <a href="/profile/{{ .User.Username }}">Profile<i class="bi bi-person"></i></a>
+                        <a href="/post/create">Create Post<i class="bi bi-pencil-square"></i></a>
+                        <a href="/auth/logout">Log-Out<i class="bi bi-box-arrow-right"></i></a>
+                    </div>
+                    {{ end }}
                 </div>
-                {{ end }}
+                <div class="main-body">
+                    {{ range .Posts }}
+                    <div class="post">
+                        <fieldset>
+                            <legend align="right">
+                                <h3>{{ .Creater }}</h3>
+                            </legend>
+                            <div class="post-title">
+                                <h3><a href="/post/{{ .Id }}">{{ .Title }}</a></h3>
+                            </div>
+                            <div class="post-content">
+                                {{ .Description }}
+                            </div>
+                            <div class="post-footer">
+                                {{ range .Category }}
+                                <a href="/?category={{ . }}" class="tag">{{ . }}</a>
+                                {{ end }}
+                            </div>
+                        </fieldset>
+                    </div>
+                    {{ end }}
+                </div>
             </div>
         </main>
         <footer>
@@ -62,4 +92,5 @@
         </footer>
     </article>
 </body>
+
 </html>

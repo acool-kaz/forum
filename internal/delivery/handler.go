@@ -35,7 +35,6 @@ func (h *Handler) InitRoutes() {
 	h.Mux.HandleFunc("/comment/like/", h.likeComment)
 	h.Mux.HandleFunc("/comment/dislike/", h.dislikeComment)
 
-	h.Mux.HandleFunc("/profile", h.userPage)
 	h.Mux.HandleFunc("/profile/", h.anotherUserPage)
 
 	fs := http.FileServer(http.Dir("./ui/static"))

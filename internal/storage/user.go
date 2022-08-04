@@ -8,6 +8,7 @@ import (
 type User interface {
 	GetPostByUsername(username string) ([]models.Post, error)
 	GetAllCategoryByPostId(postId int) ([]string, error)
+	GetUserByUsername(username string) (models.User, error)
 }
 
 type UserStorage struct {
@@ -52,4 +53,12 @@ func (s *UserStorage) GetAllCategoryByPostId(postId int) ([]string, error) {
 		category = append(category, oneCategory)
 	}
 	return category, nil
+}
+
+func (s *UserStorage) GetUserByUsername(username string) (models.User, error) {
+	var user models.User
+	query := `SELECT id, email, username FROM user WHERE username = $1;`
+	row := s.db.QueryRow(query, username)
+	err := row.Scan(&user.ID, &user.Email, &user.Username)
+	return user, err
 }
