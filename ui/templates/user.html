@@ -9,8 +9,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="/static/style/user.css">
     <title>Document</title>
+    <script src="https://kit.fontawesome.com/61ebb60581.js" crossorigin="anonymous"></script>
 </head>
 
 <body>
@@ -39,16 +41,26 @@
                 <div class="main-card">
                     <div class="card">
                         <div class="card-header">
+                            <i class="bi bi-person-circle"></i>
                             <h1>{{ .ProfileUser.Username }}</h1>
                         </div>
                         <div class="card-about">
-                            <h1>ABOUT</h1>
-                            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
-                                ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation
-                                ullamco laboris nisi ut aliquip ex ea commodo consequat. </p>
+                            <h3>{{ .ProfileUser.Email }}</h3>
+                            <h1>User</h1>
                         </div>
                         <div class="card-info">
-                            <p>POSTS - 12</p>
+                            <div class="info">
+                                <i class="fa fa-pen"></i>
+                                <p>{{ .ProfileUser.CountOfPosts }}</p>
+                            </div>
+                            <div class="info">
+                                <i class="fa fa-thumbs-up"></i>
+                                <p>{{ .ProfileUser.CountOfLikes }}</p>
+                            </div>
+                            <div class="info">
+                                <i class="fa fa-comment"></i>
+                                <p>{{ .ProfileUser.CountOfComments }}</p>
+                            </div>
                         </div>
                     </div>
                     {{ if eq .User.Username .ProfileUser.Username }}

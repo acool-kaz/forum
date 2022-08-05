@@ -6,7 +6,6 @@
 
 a {
     text-decoration: none;
-    margin-bottom: 50px;
     border: 2px solid #353636;
     padding: 10px 15px;
     color: #353636;
@@ -19,11 +18,12 @@ a:hover {
 }
 
 body {
-    padding-top: 10%;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    gap: 25px;
 }
 
 form {

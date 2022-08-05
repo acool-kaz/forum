@@ -42,6 +42,11 @@ func (s *CommentStorage) GetComments(postId int) ([]models.Comment, error) {
 func (s *CommentStorage) CreateComment(comment models.Comment) error {
 	query := `INSERT INTO comment(postId, creater, text) VALUES ($1, $2, $3);`
 	_, err := s.db.Exec(query, comment.PostId, comment.Creater, comment.Text)
+	if err != nil {
+		return err
+	}
+	query = `UPDATE user SET comments = comments + 1 WHERE username = (SELECT creater FROM post WHERE id = $1);`
+	_, err = s.db.Exec(query, comment.PostId)
 	return err
 }
 

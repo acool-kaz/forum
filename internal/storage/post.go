@@ -6,15 +6,15 @@ import (
 )
 
 type Post interface {
+	CreatePost(post models.Post) error
 	GetAllPost() ([]models.Post, error)
+	GetPostById(postId int) (models.Post, error)
 	GetPostsByCategory(category string) ([]models.Post, error)
 	GetPostByTimeNew() ([]models.Post, error)
 	GetPostByTimeOld() ([]models.Post, error)
 	GetPostByLikeMost() ([]models.Post, error)
 	GetPostByLikeLeast() ([]models.Post, error)
 	GetSimilarPosts(postId int) ([]models.Post, error)
-	CreatePost(post models.Post) error
-	GetPostById(postId int) (models.Post, error)
 	GetAllCategoryByPostId(postId int) ([]string, error)
 }
 
@@ -26,6 +26,31 @@ func newPostStorage(db *sql.DB) *PostStorage {
 	return &PostStorage{
 		db: db,
 	}
+}
+
+func (s *PostStorage) CreatePost(post models.Post) error {
+	query := `INSERT INTO post (creater, title, description) VALUES ($1, $2, $3);`
+	result, err := s.db.Exec(query, post.Creater, post.Title, post.Description)
+	if err != nil {
+		return err
+	}
+	query = `UPDATE user SET posts = posts + 1 WHERE username = $1;`
+	_, err = s.db.Exec(query, post.Creater)
+	if err != nil {
+		return err
+	}
+	query = `INSERT INTO post_category (postId, category) VALUES ($1, $2);`
+	postId, err := result.LastInsertId()
+	if err != nil {
+		return err
+	}
+	for _, oneCategory := range post.Category {
+		_, err := s.db.Exec(query, postId, oneCategory)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (s *PostStorage) GetAllPost() ([]models.Post, error) {
@@ -44,6 +69,17 @@ func (s *PostStorage) GetAllPost() ([]models.Post, error) {
 		posts = append(posts, post)
 	}
 	return posts, nil
+}
+
+func (s *PostStorage) GetPostById(postId int) (models.Post, error) {
+	var post models.Post
+	query := `SELECT * FROM post WHERE id = $1;`
+	row := s.db.QueryRow(query, postId)
+	err := row.Scan(&post.Id, &post.Creater, &post.Title, &post.Description, &post.CreatedAt, &post.Likes, &post.Dislikes)
+	if err != nil {
+		return models.Post{}, err
+	}
+	return post, nil
 }
 
 func (s *PostStorage) GetPostsByCategory(category string) ([]models.Post, error) {
@@ -148,37 +184,6 @@ func (s *PostStorage) GetSimilarPosts(postId int) ([]models.Post, error) {
 		posts = append(posts, post)
 	}
 	return posts, nil
-}
-
-func (s *PostStorage) CreatePost(post models.Post) error {
-	query := `INSERT INTO post (creater, title, description) VALUES ($1, $2, $3);`
-	result, err := s.db.Exec(query, post.Creater, post.Title, post.Description)
-	if err != nil {
-		return err
-	}
-	query = `INSERT INTO post_category (postId, category) VALUES ($1, $2);`
-	postId, err := result.LastInsertId()
-	if err != nil {
-		return err
-	}
-	for _, oneCategory := range post.Category {
-		_, err := s.db.Exec(query, postId, oneCategory)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (s *PostStorage) GetPostById(postId int) (models.Post, error) {
-	var post models.Post
-	query := `SELECT * FROM post WHERE id = $1;`
-	row := s.db.QueryRow(query, postId)
-	err := row.Scan(&post.Id, &post.Creater, &post.Title, &post.Description, &post.CreatedAt, &post.Likes, &post.Dislikes)
-	if err != nil {
-		return models.Post{}, err
-	}
-	return post, nil
 }
 
 func (s *PostStorage) GetAllCategoryByPostId(postId int) ([]string, error) {

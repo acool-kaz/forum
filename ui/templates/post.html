@@ -20,7 +20,7 @@
                 <h1><a href="/">Forum</a></h1>
                 {{ if .User.Username }}
                 <div class="user">
-                    <a href="/profile">Profile <i class="bi bi-person"></i></a>
+                    <a href="/profile/{{ .User.Username }}">Profile <i class="bi bi-person"></i></a>
                     <a href="/post/create">Create Post<i class="bi bi-pencil-square"></i></a>
                     <a href="/auth/logout">Log-Out <i class="bi bi-box-arrow-right"></i></a>
                 </div>

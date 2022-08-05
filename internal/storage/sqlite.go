@@ -10,6 +10,9 @@ const userTable = `CREATE TABLE IF NOT EXISTS user (
 	email TEXT UNIQUE,
 	username TEXT UNIQUE,
 	hashPassword TEXT,
+	posts INT DEFAULT 0,
+	likes INT DEFAULT 0,
+	comments INT DEFAULT 0,
 	session_token TEXT DEFAULT NULL,
 	expiresAt DATETIME DEFAULT NULL
 );`

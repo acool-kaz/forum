@@ -57,8 +57,8 @@ func (s *UserStorage) GetAllCategoryByPostId(postId int) ([]string, error) {
 
 func (s *UserStorage) GetUserByUsername(username string) (models.User, error) {
 	var user models.User
-	query := `SELECT id, email, username FROM user WHERE username = $1;`
+	query := `SELECT id, email, username, posts, likes, comments FROM user WHERE username = $1;`
 	row := s.db.QueryRow(query, username)
-	err := row.Scan(&user.ID, &user.Email, &user.Username)
+	err := row.Scan(&user.ID, &user.Email, &user.Username, &user.CountOfPosts, &user.CountOfLikes, &user.CountOfComments)
 	return user, err
 }

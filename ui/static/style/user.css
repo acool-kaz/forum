@@ -23,7 +23,6 @@ article {
 header {
     background-color: #353636;
     padding-bottom: 150px;
-    
 }
 
 .header-wrapper {
@@ -109,7 +108,7 @@ header {
 }
 
 .main-card {
-    width: 50%;
+    width: 40%;
     min-width: 250px;
     max-width: 500px;
     margin: 0 auto;
@@ -118,22 +117,60 @@ header {
 }
 
 .card {
+    background-color: #353636;
     box-shadow: 0 0 30px #000;
     margin-bottom: 50px;
 }
 
 .card-header {
     height: 200px;
-    background-color: #353636;
     color: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+}
+
+.card-header>i {
+    font-size: 100px;
+}
+
+.card-header>h1 {
+    font-size: 30px;
 }
 
 .card-about {
-    background-color: #fff;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin: 0 25px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #fff;
 }
 
 .card-info {
-    background-color: #fff;
+    display: flex;
+    justify-content: space-around;
+    color: #fff;
+    padding: 20px 0;
+}
+
+.info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.info>i {
+    font-size: 25px;
 }
 
 .main-body {
