@@ -7,6 +7,8 @@ import (
 
 type User interface {
 	GetPostByUsername(username string) ([]models.Post, error)
+	GetLikedPostByUsername(username string) ([]models.Post, error)
+	GetCommentedPostByUsername(username string) ([]models.Post, error)
 	GetAllCategoryByPostId(postId int) ([]string, error)
 	GetUserByUsername(username string) (models.User, error)
 }
@@ -24,6 +26,40 @@ func newUserStorage(db *sql.DB) *UserStorage {
 func (s *UserStorage) GetPostByUsername(username string) ([]models.Post, error) {
 	var posts []models.Post
 	query := `SELECT * FROM post WHERE creater = $1;`
+	rows, err := s.db.Query(query, username)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var post models.Post
+		if err := rows.Scan(&post.Id, &post.Creater, &post.Title, &post.Description, &post.CreatedAt, &post.Likes, &post.Dislikes); err != nil {
+			return nil, err
+		}
+		posts = append(posts, post)
+	}
+	return posts, nil
+}
+
+func (s *UserStorage) GetLikedPostByUsername(username string) ([]models.Post, error) {
+	var posts []models.Post
+	query := `SELECT * FROM post WHERE id IN (SELECT postId FROM likes WHERE username = $1);`
+	rows, err := s.db.Query(query, username)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var post models.Post
+		if err := rows.Scan(&post.Id, &post.Creater, &post.Title, &post.Description, &post.CreatedAt, &post.Likes, &post.Dislikes); err != nil {
+			return nil, err
+		}
+		posts = append(posts, post)
+	}
+	return posts, nil
+}
+
+func (s *UserStorage) GetCommentedPostByUsername(username string) ([]models.Post, error) {
+	var posts []models.Post
+	query := `SELECT * FROM post WHERE id IN (SELECT postId FROM comment WHERE creater = $1);`
 	rows, err := s.db.Query(query, username)
 	if err != nil {
 		return nil, err

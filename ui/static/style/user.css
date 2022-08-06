@@ -184,10 +184,20 @@ header {
     margin: 0 auto;
 }
 
-.username {
-    width: 80%;
-    max-width: 1500px;
-    margin: 20px auto;
+.filter-posts {
+    margin: 30px 0;
+    display: flex;
+    justify-content: space-around;
+}
+
+.filter-posts>a {
+    border: 1px solid #353636;
+    padding: 10px 15px;
+}
+
+.filter-posts>a:hover {
+    color: #fff;
+    background-color: #353636;
 }
 
 .post {

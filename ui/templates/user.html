@@ -23,7 +23,7 @@
                 {{ if ne .User.Username .ProfileUser.Username }}
                     {{ if .User.Username }}
                     <div class="user-header">
-                        <a href="/profile/{{ .User.Username }}">Profile <i class="bi bi-person"></i></a>
+                        <a href="/profile/{{ .User.Username }}?posts=created">Profile <i class="bi bi-person"></i></a>
                         <a href="/post/create">Create Post<i class="bi bi-pencil-square"></i></a>
                         <a href="/auth/logout">Log-Out <i class="bi bi-box-arrow-right"></i></a>
                     </div>
@@ -65,13 +65,18 @@
                     </div>
                     {{ if eq .User.Username .ProfileUser.Username }}
                     <div class="user">
-                        <a href="/profile/{{ .User.Username }}">Profile<i class="bi bi-person"></i></a>
+                        <a href="/profile/{{ .User.Username }}?posts=created">Profile<i class="bi bi-person"></i></a>
                         <a href="/post/create">Create Post<i class="bi bi-pencil-square"></i></a>
                         <a href="/auth/logout">Log-Out<i class="bi bi-box-arrow-right"></i></a>
                     </div>
                     {{ end }}
                 </div>
                 <div class="main-body">
+                    <div class="filter-posts">
+                        <a href="/profile/{{ .ProfileUser.Username }}?posts=created">Created Posts</a>
+                        <a href="/profile/{{ .ProfileUser.Username }}?posts=liked">Liked Posts</a>
+                        <a href="/profile/{{ .ProfileUser.Username }}?posts=commented">Commented Posts</a>
+                    </div>
                     {{ range .Posts }}
                     <div class="post">
                         <fieldset>

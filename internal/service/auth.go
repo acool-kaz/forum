@@ -95,7 +95,7 @@ func checkUserName(username string) (string, error) {
 			return "", ErrInvalidUserName
 		}
 	}
-	if len(username) >= 32 {
+	if len(username) <= 4 || len(username) >= 36 {
 		return "", ErrInvalidUserName
 	}
 	return username, nil

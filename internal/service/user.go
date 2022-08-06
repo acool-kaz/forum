@@ -1,12 +1,16 @@
 package service
 
 import (
+	"errors"
 	"forum/internal/storage"
 	"forum/models"
+	"strings"
 )
 
+var ErrInvalidQuery = errors.New("invalid query request")
+
 type User interface {
-	GetPostByUsername(username string) ([]models.Post, error)
+	GetPostByUsername(username string, query map[string][]string) ([]models.Post, error)
 	GetUserByUsername(username string) (models.User, error)
 }
 
@@ -20,10 +24,33 @@ func newUserService(storage storage.User) *UserService {
 	}
 }
 
-func (s *UserService) GetPostByUsername(username string) ([]models.Post, error) {
-	posts, err := s.storage.GetPostByUsername(username)
-	if err != nil {
-		return nil, err
+func (s *UserService) GetPostByUsername(username string, query map[string][]string) ([]models.Post, error) {
+	var (
+		posts []models.Post
+		err   error
+	)
+	search, ok := query["posts"]
+	if !ok {
+		return nil, ErrInvalidQuery
+	}
+	switch strings.Join(search, "") {
+	case "created":
+		posts, err = s.storage.GetPostByUsername(username)
+		if err != nil {
+			return nil, err
+		}
+	case "liked":
+		posts, err = s.storage.GetLikedPostByUsername(username)
+		if err != nil {
+			return nil, err
+		}
+	case "commented":
+		posts, err = s.storage.GetCommentedPostByUsername(username)
+		if err != nil {
+			return nil, err
+		}
+	default:
+		return nil, ErrInvalidQuery
 	}
 	for i := range posts {
 		category, err := s.storage.GetAllCategoryByPostId(posts[i].Id)

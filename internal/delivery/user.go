@@ -1,6 +1,8 @@
 package delivery
 
 import (
+	"errors"
+	"forum/internal/service"
 	"forum/models"
 	"net/http"
 	"strings"
@@ -18,8 +20,12 @@ func (h *Handler) anotherUserPage(w http.ResponseWriter, r *http.Request) {
 		h.errorPage(w, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
 		return
 	}
-	posts, err := h.Services.GetPostByUsername(currentUser.Username)
+	posts, err := h.Services.GetPostByUsername(currentUser.Username, r.URL.Query())
 	if err != nil {
+		if errors.Is(err, service.ErrInvalidQuery) {
+			h.errorPage(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
+			return
+		}
 		h.errorPage(w, http.StatusInternalServerError, err.Error())
 		return
 	}
