@@ -73,6 +73,11 @@ func (s *LikeDislikePostStorage) RemoveLikeFromPost(postId int, username string)
 	}
 	query = `UPDATE post SET likes = likes - 1 WHERE id = $1;`
 	_, err = s.db.Exec(query, postId)
+	if err != nil {
+		return err
+	}
+	query = `UPDATE user SET likes = likes - 1 WHERE username = (SELECT creater FROM post WHERE id = $1);`
+	_, err = s.db.Exec(query, postId)
 	return err
 }
 
@@ -120,6 +125,11 @@ func (s *LikeDislikePostStorage) RemoveDislikeFromPost(postId int, username stri
 		return err
 	}
 	query = `UPDATE post SET dislikes = dislikes - 1 WHERE id = $1;`
+	_, err = s.db.Exec(query, postId)
+	if err != nil {
+		return err
+	}
+	query = `UPDATE user SET dislikes = dislikes - 1 WHERE username = (SELECT creater FROM post WHERE id = $1);`
 	_, err = s.db.Exec(query, postId)
 	return err
 }
