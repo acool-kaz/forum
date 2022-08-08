@@ -1,11 +1,14 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"forum/internal/storage"
 	"forum/models"
 	"strings"
 )
+
+var ErrInvalidPost = errors.New("invalid post")
 
 type Post interface {
 	CreatePost(post models.Post) error
@@ -119,6 +122,9 @@ func (s *PostService) CreatePost(post models.Post) error {
 	post.Description = strings.TrimPrefix(post.Description, "\r\n")
 	post.Category = strings.Fields(strings.Join(append(post.Category[1:], post.Category[:1]...), " "))
 	post.Category = deleteDuplicate(post.Category)
+	if isInvalidPost(post) {
+		return ErrInvalidPost
+	}
 	return s.storage.CreatePost(post)
 }
 
@@ -132,6 +138,19 @@ func (s *PostService) GetPostById(postId int) (models.Post, error) {
 		return models.Post{}, err
 	}
 	return post, nil
+}
+
+func isInvalidPost(post models.Post) bool {
+	if strings.ReplaceAll(post.Title, " ", "") == "" {
+		return true
+	}
+	if strings.ReplaceAll(post.Description, " ", "") == "" {
+		return true
+	}
+	if len(post.Category) == 0 {
+		return true
+	}
+	return false
 }
 
 func deleteDuplicate(arr []string) []string {

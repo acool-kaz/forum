@@ -120,7 +120,7 @@
                     <form action="/post/{{ .Post.Id }}" method="post" class="send-comment">
                         <fieldset>
                             <legend>Your Comment</legend>
-                            <textarea id="Comment" name="comment"></textarea>
+                            <textarea id="Comment" name="comment" required></textarea>
                         </fieldset>
                         <button>Send</button>
                     </form>
@@ -174,14 +174,6 @@
                     }
                 }
             });
-        }
-
-        async function react(reaction) {
-            await fetch(document.URL, {
-                method: 'PATCH',
-                body: reaction
-            });
-            document.location.href = document.URL;
         }
     </script>
     <script src="/static/script/post.js"></script>

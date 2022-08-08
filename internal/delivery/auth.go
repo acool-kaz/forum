@@ -39,13 +39,19 @@ func (h *Handler) signUp(w http.ResponseWriter, r *http.Request) {
 			h.errorPage(w, http.StatusBadRequest, "password field not found")
 			return
 		}
+		verifyPassword, ok := r.Form["verifyPassword"]
+		if !ok {
+			h.errorPage(w, http.StatusBadRequest, "verifyPassword field not found")
+			return
+		}
 		user := models.User{
-			Email:    email[0],
-			Username: username[0],
-			Password: password[0],
+			Email:          email[0],
+			Username:       username[0],
+			Password:       password[0],
+			VerifyPassword: verifyPassword[0],
 		}
 		if err := h.Services.Auth.CreateUser(user); err != nil {
-			if errors.Is(err, service.ErrInvalidUserName) {
+			if errors.Is(err, service.ErrInvalidUserName) || errors.Is(err, service.ErrPasswordDontMatch) {
 				h.errorPage(w, http.StatusBadRequest, err.Error())
 				return
 			}
@@ -84,7 +90,7 @@ func (h *Handler) signIn(w http.ResponseWriter, r *http.Request) {
 		}
 		sessionToken, expiresAt, err := h.Services.Auth.GenerateSessionToken(username[0], password[0])
 		if err != nil {
-			if errors.Is(err, service.ErrLoginNotFound) || errors.Is(err, service.ErrInvalidPassword) {
+			if errors.Is(err, service.ErrUserNotFound) {
 				h.errorPage(w, http.StatusBadRequest, err.Error())
 				return
 			}

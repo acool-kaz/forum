@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"forum/internal/service"
 	"forum/models"
 	"net/http"
 	"strconv"
@@ -90,6 +91,10 @@ func (h *Handler) post(w http.ResponseWriter, r *http.Request) {
 			Text:    comment[0],
 		}
 		if err := h.Services.Comment.CreateComment(newComment); err != nil {
+			if errors.Is(err, service.ErrInvalidComment) {
+				h.errorPage(w, http.StatusBadRequest, err.Error())
+				return
+			}
 			h.errorPage(w, http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -100,13 +105,13 @@ func (h *Handler) post(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) createPost(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/post/create" {
-		h.errorPage(w, http.StatusNotFound, http.StatusText(http.StatusNotFound))
-		return
-	}
 	user := h.userIdentity(w, r)
 	if user == (models.User{}) {
 		h.errorPage(w, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
+		return
+	}
+	if r.URL.Path != "/post/create" {
+		h.errorPage(w, http.StatusNotFound, http.StatusText(http.StatusNotFound))
 		return
 	}
 	switch r.Method {
@@ -144,6 +149,10 @@ func (h *Handler) createPost(w http.ResponseWriter, r *http.Request) {
 			Description: description[0],
 		}
 		if err := h.Services.CreatePost(post); err != nil {
+			if errors.Is(err, service.ErrInvalidPost) {
+				h.errorPage(w, http.StatusBadRequest, err.Error())
+				return
+			}
 			h.errorPage(w, http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -155,6 +164,10 @@ func (h *Handler) createPost(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) likePost(w http.ResponseWriter, r *http.Request) {
 	user := h.userIdentity(w, r)
+	if user == (models.User{}) {
+		h.errorPage(w, http.StatusUnauthorized, "can not like post")
+		return
+	}
 	id, err := strconv.Atoi(strings.TrimPrefix(r.URL.Path, "/post/like/"))
 	if err != nil {
 		h.errorPage(w, http.StatusNotFound, err.Error())
@@ -162,10 +175,6 @@ func (h *Handler) likePost(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.Method != http.MethodPost {
 		h.errorPage(w, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
-		return
-	}
-	if user == (models.User{}) {
-		h.errorPage(w, http.StatusUnauthorized, "can not like post")
 		return
 	}
 	if _, err := h.Services.GetPostById(id); err != nil {
@@ -185,6 +194,10 @@ func (h *Handler) likePost(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) dislikePost(w http.ResponseWriter, r *http.Request) {
 	user := h.userIdentity(w, r)
+	if user == (models.User{}) {
+		h.errorPage(w, http.StatusUnauthorized, "can not dislike post")
+		return
+	}
 	id, err := strconv.Atoi(strings.TrimPrefix(r.URL.Path, "/post/dislike/"))
 	if err != nil {
 		h.errorPage(w, http.StatusNotFound, err.Error())
@@ -192,10 +205,6 @@ func (h *Handler) dislikePost(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.Method != http.MethodPost {
 		h.errorPage(w, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
-		return
-	}
-	if user == (models.User{}) {
-		h.errorPage(w, http.StatusUnauthorized, "can not dislike post")
 		return
 	}
 	if _, err := h.Services.GetPostById(id); err != nil {

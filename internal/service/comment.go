@@ -1,9 +1,13 @@
 package service
 
 import (
+	"errors"
 	"forum/internal/storage"
 	"forum/models"
+	"strings"
 )
+
+var ErrInvalidComment = errors.New("invalid comment")
 
 type Comment interface {
 	GetComments(postId int) ([]models.Comment, error)
@@ -26,6 +30,9 @@ func (s *CommentService) GetComments(postId int) ([]models.Comment, error) {
 }
 
 func (s *CommentService) CreateComment(comment models.Comment) error {
+	if strings.ReplaceAll(comment.Text, " ", "") == "" {
+		return ErrInvalidComment
+	}
 	return s.storage.CreateComment(comment)
 }
 

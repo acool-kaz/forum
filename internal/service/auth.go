@@ -12,9 +12,9 @@ import (
 )
 
 var (
-	ErrLoginNotFound   = errors.New("login not found")
-	ErrInvalidPassword = errors.New("invalid password")
-	ErrInvalidUserName = errors.New("invalid username")
+	ErrUserNotFound      = errors.New("user does not exist or password incorrect")
+	ErrPasswordDontMatch = errors.New("password didn't match")
+	ErrInvalidUserName   = errors.New("invalid username")
 )
 
 type Auth interface {
@@ -40,6 +40,9 @@ func (s *AuthService) CreateUser(user models.User) error {
 	if err != nil {
 		return err
 	}
+	if user.Password != user.VerifyPassword {
+		return ErrPasswordDontMatch
+	}
 	user.Password, err = generateHashPassword(user.Password)
 	if err != nil {
 		return err
@@ -48,16 +51,12 @@ func (s *AuthService) CreateUser(user models.User) error {
 }
 
 func (s *AuthService) GenerateSessionToken(username, password string) (string, time.Time, error) {
-	username, err := checkUserName(username)
-	if err != nil {
-		return "", time.Time{}, ErrLoginNotFound
-	}
 	user, err := s.storage.GetUserByLogin(username)
 	if err != nil {
-		return "", time.Time{}, ErrLoginNotFound
+		return "", time.Time{}, ErrUserNotFound
 	}
 	if err := compareHashAndPassword(user.Password, password); err != nil {
-		return "", time.Time{}, ErrInvalidPassword
+		return "", time.Time{}, ErrUserNotFound
 	}
 	token := uuid.NewString()
 	expiresAt := time.Now().Add(time.Hour * 12)
