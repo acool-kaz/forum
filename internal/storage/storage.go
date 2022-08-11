@@ -11,6 +11,7 @@ type Storage struct {
 	LikeDislikePost
 	LikeDislikeComment
 	User
+	Notify
 }
 
 func NewStorage(db *sql.DB) *Storage {
@@ -21,5 +22,6 @@ func NewStorage(db *sql.DB) *Storage {
 		LikeDislikePost:    newLikeDislikePostStorage(db),
 		LikeDislikeComment: newLikeDislikeCommentStorage(db),
 		User:               newUserStorage(db),
+		Notify:             newNotifyStorage(db),
 	}
 }

@@ -51,7 +51,10 @@ func (h *Handler) signUp(w http.ResponseWriter, r *http.Request) {
 			VerifyPassword: verifyPassword[0],
 		}
 		if err := h.Services.Auth.CreateUser(user); err != nil {
-			if errors.Is(err, service.ErrInvalidUserName) || errors.Is(err, service.ErrPasswordDontMatch) {
+			if errors.Is(err, service.ErrInvalidUserName) ||
+				errors.Is(err, service.ErrPasswordDontMatch) ||
+				errors.Is(err, service.ErrInvalidEmail) ||
+				errors.Is(err, service.ErrInvalidPassword) {
 				h.errorPage(w, http.StatusBadRequest, err.Error())
 				return
 			}

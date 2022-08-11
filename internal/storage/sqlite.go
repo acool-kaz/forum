@@ -60,31 +60,40 @@ const dislikeTable = `CREATE TABLE IF NOT EXISTS dislikes (
 	FOREIGN KEY (commentId) REFERENCES comment(id) ON DELETE CASCADE
 );`
 
-var tables = []string{userTable, postTable, postCategoryTable, commentTable, likesTable, dislikeTable}
+const notifyTable = `CREATE TABLE IF NOT EXISTS notify (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	fromUser TEXT,
+	toUser TEXT,
+	description TEXT,
+	postId INT,
+	commentId INT,
+	FOREIGN KEY (postId) REFERENCES post(id) ON DELETE CASCADE,
+	FOREIGN KEY (commentId) REFERENCES comment(id) ON DELETE CASCADE
+);`
+
+var tables = []string{userTable, postTable, postCategoryTable, commentTable, likesTable, dislikeTable, notifyTable}
 
 func InitDB() (*sql.DB, error) {
 	db, err := sql.Open("sqlite3", "forum.db")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("storage: init db: %w", err)
 	}
 	if err := db.Ping(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("storage: init db: %w", err)
 	}
 	_, err = db.Exec("PRAGMA foreign_keys = ON")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("storage: init db: %w", err)
 	}
 	return db, nil
 }
 
 func CreateTables(db *sql.DB) error {
-	var err error
 	for _, table := range tables {
-		_, err = db.Exec(table)
+		_, err := db.Exec(table)
 		if err != nil {
-			fmt.Println(err)
-			break
+			return fmt.Errorf("storage: create tables: %w", err)
 		}
 	}
-	return err
+	return nil
 }

@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"forum/internal/storage"
 	"forum/models"
 	"strings"
@@ -31,31 +32,25 @@ func (s *UserService) GetPostByUsername(username string, query map[string][]stri
 	)
 	search, ok := query["posts"]
 	if !ok {
-		return nil, ErrInvalidQuery
+		return nil, fmt.Errorf("service: get post by username: %w", ErrInvalidQuery)
 	}
 	switch strings.Join(search, "") {
 	case "created":
 		posts, err = s.storage.GetPostByUsername(username)
-		if err != nil {
-			return nil, err
-		}
 	case "liked":
 		posts, err = s.storage.GetLikedPostByUsername(username)
-		if err != nil {
-			return nil, err
-		}
 	case "commented":
 		posts, err = s.storage.GetCommentedPostByUsername(username)
-		if err != nil {
-			return nil, err
-		}
 	default:
-		return nil, ErrInvalidQuery
+		return nil, fmt.Errorf("service: get post by username: %w", ErrInvalidQuery)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("service: get post by username: %w", err)
 	}
 	for i := range posts {
 		category, err := s.storage.GetAllCategoryByPostId(posts[i].Id)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("service: get post by username: %w", err)
 		}
 		posts[i].Category = category
 	}

@@ -98,6 +98,18 @@ func (h *Handler) post(w http.ResponseWriter, r *http.Request) {
 			h.errorPage(w, http.StatusInternalServerError, err.Error())
 			return
 		}
+		if post.Creater != user.Username {
+			newNotify := models.Notify{
+				From:        user.Username,
+				To:          post.Creater,
+				Description: "post comment",
+				PostId:      post.Id,
+			}
+			if err := h.Services.AddNewNotify(newNotify); err != nil {
+				h.errorPage(w, http.StatusInternalServerError, err.Error())
+				return
+			}
+		}
 		http.Redirect(w, r, r.URL.Path, http.StatusSeeOther)
 	default:
 		h.errorPage(w, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
@@ -177,7 +189,8 @@ func (h *Handler) likePost(w http.ResponseWriter, r *http.Request) {
 		h.errorPage(w, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
 		return
 	}
-	if _, err := h.Services.GetPostById(id); err != nil {
+	post, err := h.Services.GetPostById(id)
+	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			h.errorPage(w, http.StatusNotFound, err.Error())
 			return
@@ -188,6 +201,18 @@ func (h *Handler) likePost(w http.ResponseWriter, r *http.Request) {
 	if err := h.Services.LikePost(id, user.Username); err != nil {
 		h.errorPage(w, http.StatusInternalServerError, err.Error())
 		return
+	}
+	if post.Creater != user.Username {
+		newNotify := models.Notify{
+			From:        user.Username,
+			To:          post.Creater,
+			Description: "post like",
+			PostId:      post.Id,
+		}
+		if err := h.Services.AddNewNotify(newNotify); err != nil {
+			h.errorPage(w, http.StatusInternalServerError, err.Error())
+			return
+		}
 	}
 	http.Redirect(w, r, fmt.Sprintf("/post/%d", id), http.StatusSeeOther)
 }
@@ -207,7 +232,8 @@ func (h *Handler) dislikePost(w http.ResponseWriter, r *http.Request) {
 		h.errorPage(w, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
 		return
 	}
-	if _, err := h.Services.GetPostById(id); err != nil {
+	post, err := h.Services.GetPostById(id)
+	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			h.errorPage(w, http.StatusNotFound, err.Error())
 			return
@@ -222,6 +248,18 @@ func (h *Handler) dislikePost(w http.ResponseWriter, r *http.Request) {
 		}
 		h.errorPage(w, http.StatusInternalServerError, err.Error())
 		return
+	}
+	if post.Creater != user.Username {
+		newNotify := models.Notify{
+			From:        user.Username,
+			To:          post.Creater,
+			Description: "post dislike",
+			PostId:      post.Id,
+		}
+		if err := h.Services.AddNewNotify(newNotify); err != nil {
+			h.errorPage(w, http.StatusInternalServerError, err.Error())
+			return
+		}
 	}
 	http.Redirect(w, r, fmt.Sprintf("/post/%d", id), http.StatusSeeOther)
 }

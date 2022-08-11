@@ -6,6 +6,7 @@ type Info struct {
 	Posts            []Post
 	SimilarPosts     []Post
 	Post             Post
+	Notifies         []Notify
 	PostLikes        []string
 	PostDislikes     []string
 	Comments         []Comment

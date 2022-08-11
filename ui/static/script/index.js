@@ -7,3 +7,11 @@ window.onclick = function(e) {
         document.getElementById("dropDown").classList.remove('show')
     }
 }
+
+function showModal() {
+    document.querySelector('.modal').style.display = 'flex'
+}
+
+function closeModal() {
+    document.querySelector('.modal').style.display = 'none'
+}

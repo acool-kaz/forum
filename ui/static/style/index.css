@@ -4,6 +4,31 @@
     font-family: 'Roboto', sans-serif;
 }
 
+.modal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    background-color: rgba(0, 0, 0, .5);
+    width: 100vw;
+    height: 100vh;
+    display: none;
+    align-items: center;
+}
+
+.modal-content {
+    width: 50%;
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: #fff;
+}
+
+.modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
 a {
     text-decoration: none;
     color: black;

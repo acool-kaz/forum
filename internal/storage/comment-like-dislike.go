@@ -1,6 +1,9 @@
 package storage
 
-import "database/sql"
+import (
+	"database/sql"
+	"fmt"
+)
 
 type LikeDislikeComment interface {
 	GetCommentLikes(postId int) (map[int][]string, error)
@@ -29,7 +32,7 @@ func (s *LikeDislikeCommentStorage) GetCommentLikes(postId int) (map[int][]strin
 	users := make(map[int][]string)
 	rowsComment, err := s.db.Query(queryForCommentsId, postId)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("storage: get comment likes: %w", err)
 	}
 	for rowsComment.Next() {
 		var id int
@@ -37,17 +40,17 @@ func (s *LikeDislikeCommentStorage) GetCommentLikes(postId int) (map[int][]strin
 			if err == sql.ErrNoRows {
 				return nil, nil
 			}
-			return nil, err
+			return nil, fmt.Errorf("storage: get comment likes: %w", err)
 		}
 		var usernames []string
 		rowsUsers, err := s.db.Query(queryForUsers, id)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("storage: get comment likes: %w", err)
 		}
 		for rowsUsers.Next() {
 			var username string
 			if err := rowsUsers.Scan(&username); err != nil {
-				return nil, err
+				return nil, fmt.Errorf("storage: get comment likes: %w", err)
 			}
 			usernames = append(usernames, username)
 		}
@@ -60,28 +63,38 @@ func (s *LikeDislikeCommentStorage) LikeComment(commentId int, username string) 
 	query := `INSERT INTO likes(commentId, username) VALUES ($1, $2);`
 	_, err := s.db.Exec(query, commentId, username)
 	if err != nil {
-		return err
+		return fmt.Errorf("storage: like comment: %w", err)
 	}
 	query = `UPDATE comment SET likes = likes + 1  WHERE id = $1;`
 	_, err = s.db.Exec(query, commentId)
-	return err
+	if err != nil {
+		return fmt.Errorf("storage: like comment: %w", err)
+	}
+	return nil
 }
 
 func (s *LikeDislikeCommentStorage) CommentHasLike(commentId int, username string) error {
 	var u, query string
 	query = `SELECT username FROM likes WHERE commentId = $1 AND username = $2;`
-	return s.db.QueryRow(query, commentId, username).Scan(&u)
+	err := s.db.QueryRow(query, commentId, username).Scan(&u)
+	if err != nil {
+		return fmt.Errorf("storage: comment has like: %w", err)
+	}
+	return nil
 }
 
 func (s *LikeDislikeCommentStorage) RemoveLikeFromComment(commentId int, username string) error {
 	query := `DELETE FROM likes WHERE commentId = $1 AND username = $2;`
 	_, err := s.db.Exec(query, commentId, username)
 	if err != nil {
-		return err
+		return fmt.Errorf("storage: remove like from comment: %w", err)
 	}
 	query = `UPDATE comment SET likes = likes - 1 WHERE id = $1;`
 	_, err = s.db.Exec(query, commentId)
-	return err
+	if err != nil {
+		return fmt.Errorf("storage: remove like from comment: %w", err)
+	}
+	return nil
 }
 
 func (s *LikeDislikeCommentStorage) GetCommentDislikes(postId int) (map[int][]string, error) {
@@ -90,7 +103,7 @@ func (s *LikeDislikeCommentStorage) GetCommentDislikes(postId int) (map[int][]st
 	users := make(map[int][]string)
 	rowsComment, err := s.db.Query(queryForCommentsId, postId)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("storage: get comment dislikes: %w", err)
 	}
 	for rowsComment.Next() {
 		var id int
@@ -98,17 +111,17 @@ func (s *LikeDislikeCommentStorage) GetCommentDislikes(postId int) (map[int][]st
 			if err == sql.ErrNoRows {
 				return nil, nil
 			}
-			return nil, err
+			return nil, fmt.Errorf("storage: get comment dislikes: %w", err)
 		}
 		var usernames []string
 		rowsUsers, err := s.db.Query(queryForUsers, id)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("storage: get comment dislikes: %w", err)
 		}
 		for rowsUsers.Next() {
 			var username string
 			if err := rowsUsers.Scan(&username); err != nil {
-				return nil, err
+				return nil, fmt.Errorf("storage: get comment dislikes: %w", err)
 			}
 			usernames = append(usernames, username)
 		}
@@ -121,26 +134,36 @@ func (s *LikeDislikeCommentStorage) DislikeComment(commentId int, username strin
 	query := `INSERT INTO dislikes(commentId, username) VALUES ($1, $2);`
 	_, err := s.db.Exec(query, commentId, username)
 	if err != nil {
-		return err
+		return fmt.Errorf("storage: dislike comment: %w", err)
 	}
 	query = `UPDATE comment SET dislikes = dislikes + 1 WHERE id = $1;`
 	_, err = s.db.Exec(query, commentId)
-	return err
+	if err != nil {
+		return fmt.Errorf("storage: dislike comment: %w", err)
+	}
+	return nil
 }
 
 func (s *LikeDislikeCommentStorage) CommentHasDislike(commentId int, username string) error {
 	var u, query string
 	query = `SELECT username FROM dislikes WHERE commentId = $1 AND username = $2;`
-	return s.db.QueryRow(query, commentId, username).Scan(&u)
+	err := s.db.QueryRow(query, commentId, username).Scan(&u)
+	if err != nil {
+		return fmt.Errorf("storage: comment has dislike: %w", err)
+	}
+	return nil
 }
 
 func (s *LikeDislikeCommentStorage) RemoveDislikeFromComment(commentId int, username string) error {
 	query := `DELETE FROM dislikes WHERE commentId = $1 AND username = $2;`
 	_, err := s.db.Exec(query, commentId, username)
 	if err != nil {
-		return err
+		return fmt.Errorf("storage: remove dislike from comment: %w", err)
 	}
 	query = `UPDATE comment SET dislikes = dislikes - 1  WHERE id = $1;`
 	_, err = s.db.Exec(query, commentId)
-	return err
+	if err != nil {
+		return fmt.Errorf("storage: remove dislike from comment: %w", err)
+	}
+	return nil
 }

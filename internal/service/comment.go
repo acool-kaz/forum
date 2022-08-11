@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"forum/internal/storage"
 	"forum/models"
 	"strings"
@@ -11,8 +12,9 @@ var ErrInvalidComment = errors.New("invalid comment")
 
 type Comment interface {
 	GetComments(postId int) ([]models.Comment, error)
+	GetCommentById(commentId int) (models.Comment, error)
 	CreateComment(comment models.Comment) error
-	GetPostIdByCommentId(commentId int) (int, error)
+	// GetPostByCommentId(commentId int) (models.Post, error)
 }
 
 type CommentService struct {
@@ -26,16 +28,31 @@ func newCommentService(storage storage.Comment) *CommentService {
 }
 
 func (s *CommentService) GetComments(postId int) ([]models.Comment, error) {
-	return s.storage.GetComments(postId)
+	comments, err := s.storage.GetComments(postId)
+	if err != nil {
+		return nil, fmt.Errorf("service: get commnets: %w", err)
+	}
+	return comments, nil
+}
+
+func (s *CommentService) GetCommentById(commentId int) (models.Comment, error) {
+	comment, err := s.storage.GetCommentById(commentId)
+	if err != nil {
+		return comment, fmt.Errorf("service: get comment by id: %w", err)
+	}
+	return comment, nil
 }
 
 func (s *CommentService) CreateComment(comment models.Comment) error {
 	if strings.ReplaceAll(comment.Text, " ", "") == "" {
-		return ErrInvalidComment
+		return fmt.Errorf("service: create comment: %w", ErrInvalidComment)
 	}
-	return s.storage.CreateComment(comment)
+	if err := s.storage.CreateComment(comment); err != nil {
+		return fmt.Errorf("service: create comment: %w", err)
+	}
+	return nil
 }
 
-func (s *CommentService) GetPostIdByCommentId(commentId int) (int, error) {
-	return s.storage.GetPostIdByCommentId(commentId)
-}
+// func (s *CommentService) GetPostByCommentId(commentId int) (models.Post, error) {
+// 	return s.storage.GetPostByCommentId(commentId)
+// }
