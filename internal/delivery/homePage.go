@@ -18,12 +18,12 @@ func (h *Handler) homePage(w http.ResponseWriter, r *http.Request) {
 	}
 	user := h.userIdentity(w, r)
 	var (
-		posts    []models.Post
-		notifies []models.Notify
-		err      error
+		posts         []models.Post
+		notifications []models.Notification
+		err           error
 	)
 	if user != (models.User{}) {
-		notifies, err = h.Services.GetAllNotifyForUser(user.Username)
+		notifications, err = h.Services.GetAllNotificationForUser(user.Username)
 		if err != nil {
 			h.errorPage(w, http.StatusInternalServerError, err.Error())
 			return
@@ -80,9 +80,9 @@ func (h *Handler) homePage(w http.ResponseWriter, r *http.Request) {
 		// }
 	}
 	info := models.Info{
-		Posts:    posts,
-		User:     user,
-		Notifies: notifies,
+		Posts:         posts,
+		User:          user,
+		Notifications: notifications,
 	}
 	if err := h.Tmpl.ExecuteTemplate(w, "index.html", info); err != nil {
 		h.errorPage(w, http.StatusInternalServerError, err.Error())

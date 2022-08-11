@@ -21,16 +21,17 @@
                 <h1><a href="/">Forum</a></h1>
                 {{ if .User.Username }}
                 <div class="user">
-                    <button onclick="showModal()">Notify<i class="bi bi-bell"></i></button>
+                    <button onclick="showModal()" class="notify"><i class="bi bi-bell"></i></button>
                     <div class="modal">
                         <div class="modal-content">
-                            <div class="modal-header">Modal Header <button onclick="closeModal()">X</button></div>
+                            <div class="modal-header">Notifications<span class='close' onclick='closeModal()'></span></div>
                             <div class="modal-body">
-                                {{ range .Notifies }}
-                                    <span><a href="/profile/{{ .From }}?posts=created">{{ .From }}</a> {{ .Description }}</span>
+                                {{ range .Notifications }}
+                                    <span><a href="/profile/{{ .From }}?posts=created">{{ .From }}</a> {{ .Description }} <a href="/post/{{ .PostId }}">{{ .PostId }}</a></span>
+                                {{ else }}
+                                    <span>No notifications for you</span>
                                 {{ end }}
                             </div>
-                            <div class="modal-footer">Modal Footer</div>
                         </div>
                     </div>
                     <a href="/profile/{{ .User.Username }}?posts=created">Profile <i class="bi bi-person"></i></a>
@@ -85,7 +86,7 @@
             </div>
         </footer>
     </article>
-    <script src="/static/script/index.js"></script>
+    <script src="/static/script/notification.js"></script>
 </body>
 
 </html>

@@ -26,6 +26,14 @@ func (h *Handler) post(w http.ResponseWriter, r *http.Request) {
 		h.errorPage(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+	var notifications []models.Notification
+	if user != (models.User{}) {
+		notifications, err = h.Services.GetAllNotificationForUser(user.Username)
+		if err != nil {
+			h.errorPage(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+	}
 	switch r.Method {
 	case http.MethodGet:
 		comments, err := h.Services.GetComments(post.Id)
@@ -61,6 +69,7 @@ func (h *Handler) post(w http.ResponseWriter, r *http.Request) {
 		info := models.Info{
 			SimilarPosts:     similarPosts,
 			Post:             post,
+			Notifications:    notifications,
 			PostLikes:        postLikes,
 			PostDislikes:     postDisikes,
 			User:             user,
@@ -99,13 +108,13 @@ func (h *Handler) post(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if post.Creater != user.Username {
-			newNotify := models.Notify{
+			newNotify := models.Notification{
 				From:        user.Username,
 				To:          post.Creater,
-				Description: "post comment",
+				Description: "commented your post",
 				PostId:      post.Id,
 			}
-			if err := h.Services.AddNewNotify(newNotify); err != nil {
+			if err := h.Services.AddNewNotification(newNotify); err != nil {
 				h.errorPage(w, http.StatusInternalServerError, err.Error())
 				return
 			}
@@ -203,13 +212,13 @@ func (h *Handler) likePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if post.Creater != user.Username {
-		newNotify := models.Notify{
+		newNotification := models.Notification{
 			From:        user.Username,
 			To:          post.Creater,
-			Description: "post like",
+			Description: "liked your post",
 			PostId:      post.Id,
 		}
-		if err := h.Services.AddNewNotify(newNotify); err != nil {
+		if err := h.Services.AddNewNotification(newNotification); err != nil {
 			h.errorPage(w, http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -250,13 +259,13 @@ func (h *Handler) dislikePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if post.Creater != user.Username {
-		newNotify := models.Notify{
+		newNotification := models.Notification{
 			From:        user.Username,
 			To:          post.Creater,
-			Description: "post dislike",
+			Description: "disliked your post",
 			PostId:      post.Id,
 		}
-		if err := h.Services.AddNewNotify(newNotify); err != nil {
+		if err := h.Services.AddNewNotification(newNotification); err != nil {
 			h.errorPage(w, http.StatusInternalServerError, err.Error())
 			return
 		}

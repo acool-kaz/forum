@@ -11,7 +11,7 @@ type Service struct {
 	LikeDislikePost
 	LikeDislikeComment
 	User
-	Notify
+	Notification
 }
 
 func NewService(storages *storage.Storage) *Service {
@@ -22,6 +22,6 @@ func NewService(storages *storage.Storage) *Service {
 		LikeDislikePost:    newLikeDislikeService(storages.LikeDislikePost),
 		LikeDislikeComment: newLikeDislikeCommentService(storages.LikeDislikeComment),
 		User:               newUserService(storages.User),
-		Notify:             newNotifyService(storages.Notify),
+		Notification:       newNotificationService(storages.Notification),
 	}
 }

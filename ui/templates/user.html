@@ -20,19 +20,36 @@
         <header>
             <div class="header-wrapper">
                 <h1><a href="/">Forum</a></h1>
+                {{ if .User.Username }}
+                <button onclick="showModal()" class="notify"><i class="bi bi-bell"></i></button>
+                <div class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">Notifications<span class='close'
+                                onclick='closeModal()'></span></div>
+                        <div class="modal-body">
+                            {{ range .Notifications }}
+                            <span><a href="/profile/{{ .From }}?posts=created">{{ .From }}</a> {{ .Description
+                                }} <a href="/post/{{ .PostId }}">{{ .PostId }}</a></span>
+                            {{ else }}
+                            <span>No notifications for you</span>
+                            {{ end }}
+                        </div>
+                    </div>
+                </div>
+                {{ end }}
                 {{ if ne .User.Username .ProfileUser.Username }}
-                    {{ if .User.Username }}
-                    <div class="user-header">
-                        <a href="/profile/{{ .User.Username }}?posts=created">Profile <i class="bi bi-person"></i></a>
-                        <a href="/post/create">Create Post<i class="bi bi-pencil-square"></i></a>
-                        <a href="/auth/logout">Log-Out <i class="bi bi-box-arrow-right"></i></a>
-                    </div>
-                    {{ else }}
-                    <div class="auth">
-                        <a href="/auth/signin" class="sign">Sign-In</a>
-                        <a href="/auth/signup" class="sign">Sign-Up</a>
-                    </div>
-                    {{ end }}
+                {{ if .User.Username }}
+                <div class="user-header">
+                    <a href="/profile/{{ .User.Username }}?posts=created">Profile <i class="bi bi-person"></i></a>
+                    <a href="/post/create">Create Post<i class="bi bi-pencil-square"></i></a>
+                    <a href="/auth/logout">Log-Out <i class="bi bi-box-arrow-right"></i></a>
+                </div>
+                {{ else }}
+                <div class="auth">
+                    <a href="/auth/signin" class="sign">Sign-In</a>
+                    <a href="/auth/signup" class="sign">Sign-Up</a>
+                </div>
+                {{ end }}
                 {{ end }}
             </div>
         </header>
@@ -108,6 +125,7 @@
             </div>
         </footer>
     </article>
+    <script src="/static/script/notification.js"></script>
 </body>
 
 </html>

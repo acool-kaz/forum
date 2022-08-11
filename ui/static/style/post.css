@@ -7,6 +7,79 @@
 a {
     text-decoration: none;
     color: black;
+    transition: all .1s linear;
+}
+
+.modal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    background-color: rgba(0, 0, 0, .5);
+    width: 100vw;
+    height: 100vh;
+    display: none;
+    align-items: center;
+}
+
+.modal-content {
+    width: 50%;
+    max-width: 400px;
+    margin: 0 auto;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 15px;
+    border-radius: 10px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #353636;
+}
+
+.close {
+    color: #353636;
+}
+
+.close::after {
+    content: '\00d7';
+    cursor: pointer;
+    font-size: 30px;
+}
+
+.close:hover {
+    color: rgb(0, 0, 0);
+}
+
+.notify {
+    all: unset;
+    cursor: pointer;
+    color: #fff;
+    border: 1px solid #fff;
+    padding: 10px 15px;
+    transition: all .1s linear;
+    max-width: fit-content;
+}
+
+.notify:hover {
+    background-color: #fff;
+    color:#353636;
+}
+
+.modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    word-wrap: break-word;
+    line-height: 25px;
+}
+
+.modal-body a {
+    border-bottom: 2px dotted #000;
 }
 
 body {
@@ -26,7 +99,6 @@ header {
 
 .header-wrapper {
     width: 60%;
-    min-width: 400px;
     margin: 0 auto;
     display: flex;
     justify-content: space-between;
@@ -41,15 +113,25 @@ header {
 .user {
     display: flex;
     gap: 25px;
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
-@media screen and (max-width:800px) {
+@media screen and (max-width:900px) {
     .header-wrapper {
         flex-direction: column;
     }
     .header-wrapper>h1 {
         padding-bottom: 20px;
     }
+}
+
+.user>a {
+    color:#fff;
+    border: 1px solid #fff;
+    padding: 10px 15px;
+    display: flex;
+    justify-content: space-between;
 }
 
 @media screen and (max-width:500px) {
@@ -59,12 +141,9 @@ header {
     .user {
         flex-direction: column;
     }
-}
-
-.user>a {
-    color:#fff;
-    border: 1px solid #fff;
-    padding: 10px 15px;
+    .notify {
+        margin: 0 auto;
+    }
 }
 
 .user>a:hover {

@@ -38,19 +38,14 @@ func (h *Handler) likeComment(w http.ResponseWriter, r *http.Request) {
 		h.errorPage(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	// post, err := h.Services.GetPostByCommentId(id)
-	// if err != nil {
-	// 	h.errorPage(w, http.StatusInternalServerError, err.Error())
-	// 	return
-	// }
 	if comment.Creater != user.Username {
-		newNotify := models.Notify{
+		newNotification := models.Notification{
 			From:        user.Username,
 			To:          comment.Creater,
-			Description: "post comment like",
+			Description: "liked comment under the post",
 			PostId:      comment.PostId,
 		}
-		if err := h.Services.AddNewNotify(newNotify); err != nil {
+		if err := h.Services.AddNewNotification(newNotification); err != nil {
 			h.errorPage(w, http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -86,19 +81,14 @@ func (h *Handler) dislikeComment(w http.ResponseWriter, r *http.Request) {
 		h.errorPage(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	// post, err := h.Services.GetPostByCommentId(id)
-	// if err != nil {
-	// 	h.errorPage(w, http.StatusInternalServerError, err.Error())
-	// 	return
-	// }
 	if comment.Creater != user.Username {
-		newNotify := models.Notify{
+		newNotification := models.Notification{
 			From:        user.Username,
 			To:          comment.Creater,
-			Description: "post comment dislike",
+			Description: "disliked comment under the post",
 			PostId:      comment.PostId,
 		}
-		if err := h.Services.AddNewNotify(newNotify); err != nil {
+		if err := h.Services.AddNewNotification(newNotification); err != nil {
 			h.errorPage(w, http.StatusInternalServerError, err.Error())
 			return
 		}

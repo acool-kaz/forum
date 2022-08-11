@@ -1,6 +1,6 @@
 package models
 
-type Notify struct {
+type Notification struct {
 	Id          int
 	From        string
 	To          string

@@ -1,6 +1,7 @@
 package service
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"forum/internal/storage"
@@ -14,10 +15,10 @@ import (
 
 var (
 	ErrUserNotFound      = errors.New("user does not exist or password incorrect")
-	ErrPasswordDontMatch = errors.New("password didn't match")
 	ErrInvalidUserName   = errors.New("invalid username")
 	ErrInvalidEmail      = errors.New("invalid email")
 	ErrInvalidPassword   = errors.New("invalid password")
+	ErrPasswordDontMatch = errors.New("password didn't match")
 )
 
 type Auth interface {
@@ -53,6 +54,9 @@ func (s *AuthService) CreateUser(user models.User) error {
 func (s *AuthService) GenerateSessionToken(username, password string) (string, time.Time, error) {
 	user, err := s.storage.GetUserByLogin(username)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", time.Time{}, fmt.Errorf("service: generate session token: %w", ErrUserNotFound)
+		}
 		return "", time.Time{}, fmt.Errorf("service: generate session token: %w", err)
 	}
 	if err := compareHashAndPassword(user.Password, password); err != nil {
@@ -88,7 +92,10 @@ func generateHashPassword(password string) (string, error) {
 }
 
 func compareHashAndPassword(hash, password string) error {
-	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	if err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)); err != nil {
+		return ErrUserNotFound
+	}
+	return nil
 }
 
 func validUser(user models.User) error {

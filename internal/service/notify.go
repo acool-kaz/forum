@@ -6,42 +6,42 @@ import (
 	"forum/models"
 )
 
-type Notify interface {
-	AddNewNotify(notify models.Notify) error
-	GetAllNotifyForUser(username string) ([]models.Notify, error)
-	DeleteNotify(notifyId int) error
+type Notification interface {
+	AddNewNotification(notification models.Notification) error
+	GetAllNotificationForUser(username string) ([]models.Notification, error)
+	DeleteNotification(notificationId int) error
 }
 
-type NotifyService struct {
-	storage storage.Notify
+type NotificationService struct {
+	storage storage.Notification
 }
 
-func newNotifyService(storage storage.Notify) *NotifyService {
-	return &NotifyService{
+func newNotificationService(storage storage.Notification) *NotificationService {
+	return &NotificationService{
 		storage: storage,
 	}
 }
 
-func (s *NotifyService) AddNewNotify(notify models.Notify) error {
-	err := s.storage.AddNewNotify(notify)
+func (s *NotificationService) AddNewNotification(notification models.Notification) error {
+	err := s.storage.AddNewNotification(notification)
 	if err != nil {
-		return fmt.Errorf("service: add new notify: %w", err)
+		return fmt.Errorf("service: add new notification: %w", err)
 	}
 	return nil
 }
 
-func (s *NotifyService) GetAllNotifyForUser(username string) ([]models.Notify, error) {
-	notifies, err := s.storage.GetAllNotifyForUser(username)
+func (s *NotificationService) GetAllNotificationForUser(username string) ([]models.Notification, error) {
+	notifies, err := s.storage.GetAllNotificationForUser(username)
 	if err != nil {
-		return nil, fmt.Errorf("service: get all notify for user: %w", err)
+		return nil, fmt.Errorf("service: get all notification for user: %w", err)
 	}
 	return notifies, nil
 }
 
-func (s *NotifyService) DeleteNotify(notifyId int) error {
-	err := s.storage.DeleteNotify(notifyId)
+func (s *NotificationService) DeleteNotification(notificationId int) error {
+	err := s.storage.DeleteNotification(notificationId)
 	if err != nil {
-		return fmt.Errorf("service: delete notify: %w", err)
+		return fmt.Errorf("service: delete notification: %w", err)
 	}
 	return nil
 }

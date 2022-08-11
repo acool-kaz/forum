@@ -12,6 +12,7 @@ const userTable = `CREATE TABLE IF NOT EXISTS user (
 	hashPassword TEXT,
 	posts INT DEFAULT 0,
 	likes INT DEFAULT 0,
+	dislikes INT DEFAULT 0,
 	comments INT DEFAULT 0,
 	session_token TEXT DEFAULT NULL,
 	expiresAt DATETIME DEFAULT NULL
@@ -60,15 +61,13 @@ const dislikeTable = `CREATE TABLE IF NOT EXISTS dislikes (
 	FOREIGN KEY (commentId) REFERENCES comment(id) ON DELETE CASCADE
 );`
 
-const notifyTable = `CREATE TABLE IF NOT EXISTS notify (
+const notifyTable = `CREATE TABLE IF NOT EXISTS notification (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	fromUser TEXT,
 	toUser TEXT,
 	description TEXT,
 	postId INT,
-	commentId INT,
-	FOREIGN KEY (postId) REFERENCES post(id) ON DELETE CASCADE,
-	FOREIGN KEY (commentId) REFERENCES comment(id) ON DELETE CASCADE
+	FOREIGN KEY (postId) REFERENCES post(id) ON DELETE CASCADE
 );`
 
 var tables = []string{userTable, postTable, postCategoryTable, commentTable, likesTable, dislikeTable, notifyTable}
