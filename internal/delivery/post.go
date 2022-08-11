@@ -183,6 +183,37 @@ func (h *Handler) createPost(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *Handler) deletePost(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		h.errorPage(w, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
+		return
+	}
+	user := h.userIdentity(w, r)
+	if user == (models.User{}) {
+		h.errorPage(w, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
+		return
+	}
+	postId, err := strconv.Atoi(strings.TrimPrefix(r.URL.Path, "/post/delete/"))
+	if err != nil {
+		h.errorPage(w, http.StatusNotFound, err.Error())
+		return
+	}
+	post, err := h.Services.GetPostById(postId)
+	if err != nil {
+		h.errorPage(w, http.StatusNotFound, err.Error())
+		return
+	}
+	if user.Username != post.Creater {
+		h.errorPage(w, http.StatusBadRequest, "you cant delete this post")
+		return
+	}
+	if err := h.Services.DeletePost(post.Id); err != nil {
+		h.errorPage(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
 func (h *Handler) likePost(w http.ResponseWriter, r *http.Request) {
 	user := h.userIdentity(w, r)
 	if user == (models.User{}) {

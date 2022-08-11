@@ -17,6 +17,7 @@ type Post interface {
 	GetPostByLikeLeast() ([]models.Post, error)
 	GetSimilarPosts(postId int) ([]models.Post, error)
 	GetAllCategoryByPostId(postId int) ([]string, error)
+	DeletePost(postId int) error
 }
 
 type PostStorage struct {
@@ -202,4 +203,13 @@ func (s *PostStorage) GetAllCategoryByPostId(postId int) ([]string, error) {
 		category = append(category, oneCategory)
 	}
 	return category, nil
+}
+
+func (s *PostStorage) DeletePost(postId int) error {
+	query := `DELETE FROM post WHERE id = $1;`
+	_, err := s.db.Exec(query, postId)
+	if err != nil {
+		return fmt.Errorf("storage: delete post: %w", err)
+	}
+	return nil
 }
