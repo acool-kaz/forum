@@ -30,6 +30,7 @@ func (h *Handler) InitRoutes() {
 	h.Mux.HandleFunc("/post/", h.post)
 	h.Mux.HandleFunc("/post/create", h.createPost)
 	h.Mux.HandleFunc("/post/delete/", h.deletePost)
+	h.Mux.HandleFunc("/post/change/", h.changePost)
 
 	h.Mux.HandleFunc("/post/like/", h.likePost)
 	h.Mux.HandleFunc("/post/dislike/", h.dislikePost)

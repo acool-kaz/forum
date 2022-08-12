@@ -11,14 +11,14 @@ a {
 }
 
 .modal {
-    position: absolute;
+    display: none;
+    position: fixed;
     top: 0;
     left: 0;
+    min-height: 100vh;
+    min-width: 100vw;
     z-index: 1;
     background-color: rgba(0, 0, 0, .5);
-    width: 100vw;
-    height: 100vh;
-    display: none;
     align-items: center;
 }
 
@@ -80,6 +80,61 @@ a {
 
 .modal-body a {
     border-bottom: 2px dotted #000;
+}
+
+.change-post {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+fieldset {
+    padding: 5px 10px;
+}
+
+.change-post input, textarea {
+    outline: none;
+    border: none;
+    resize: none;
+    width: 100%;
+    font-size: 18px;
+}
+
+.change-post textarea {
+    height: 200px;
+}
+
+.category {
+    display: none;
+}
+
+.shown-categories {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.change-tag {
+    border: 1px solid #353636;
+    color: #353636;
+    padding: 5px 10px;
+    transition: all .1s linear;
+}
+
+.change-tag:hover {
+    background-color:#353636;
+    color: #fff;
+}
+
+.change-tag .delete-tag::after {
+    content: '\00d7';
+    display: inline-block;
+    transform: scale(1.4);
+    margin-left: 0.5em;
+}
+
+.delete-tag:hover {
+    cursor: pointer;
 }
 
 body {
@@ -312,6 +367,24 @@ header {
     row-gap: 10px;
     max-width: 100%;
     word-wrap: break-word;
+}
+
+.post-modify {
+    display: flex;
+    justify-content: space-evenly;
+}
+
+.btn {
+    all: unset;
+    cursor: pointer;
+    padding: 10px 15px;
+    border: 1px solid #353636;
+    transition: all .1s linear;
+}
+
+.btn:hover {
+    background-color: #353636;
+    color: #fff;
 }
 
 .main-wrapper>h1 {

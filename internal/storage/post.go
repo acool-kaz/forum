@@ -17,7 +17,8 @@ type Post interface {
 	GetPostByLikeLeast() ([]models.Post, error)
 	GetSimilarPosts(postId int) ([]models.Post, error)
 	GetAllCategoryByPostId(postId int) ([]string, error)
-	DeletePost(postId int) error
+	DeletePost(post models.Post) error
+	ChangePost(newPost models.Post, postId int) error
 }
 
 type PostStorage struct {
@@ -65,7 +66,7 @@ func (s *PostStorage) GetAllPost() ([]models.Post, error) {
 	var posts []models.Post
 	for rows.Next() {
 		var post models.Post
-		if err := rows.Scan(&post.Id, &post.Creater, &post.Title, &post.Description, &post.CreatedAt, &post.Likes, &post.Dislikes); err != nil {
+		if err := rows.Scan(&post.Id, &post.Creater, &post.Title, &post.Description, &post.CreatedAt, &post.Likes, &post.Dislikes, &post.Comments); err != nil {
 			return nil, fmt.Errorf("storage: get all post: %w", err)
 		}
 		posts = append(posts, post)
@@ -76,8 +77,7 @@ func (s *PostStorage) GetAllPost() ([]models.Post, error) {
 func (s *PostStorage) GetPostById(postId int) (models.Post, error) {
 	var post models.Post
 	query := `SELECT * FROM post WHERE id = $1;`
-	row := s.db.QueryRow(query, postId)
-	err := row.Scan(&post.Id, &post.Creater, &post.Title, &post.Description, &post.CreatedAt, &post.Likes, &post.Dislikes)
+	err := s.db.QueryRow(query, postId).Scan(&post.Id, &post.Creater, &post.Title, &post.Description, &post.CreatedAt, &post.Likes, &post.Dislikes, &post.Comments)
 	if err != nil {
 		return models.Post{}, fmt.Errorf("storage: get post by id: %w", err)
 	}
@@ -205,11 +205,42 @@ func (s *PostStorage) GetAllCategoryByPostId(postId int) ([]string, error) {
 	return category, nil
 }
 
-func (s *PostStorage) DeletePost(postId int) error {
-	query := `DELETE FROM post WHERE id = $1;`
-	_, err := s.db.Exec(query, postId)
+func (s *PostStorage) DeletePost(post models.Post) error {
+	query := `UPDATE user 
+	SET posts = posts - 1,
+	likes = likes - $1,
+	dislikes = dislikes - $2,
+	comments = comments - $3
+	WHERE username = $4;`
+	_, err := s.db.Exec(query, post.Likes, post.Dislikes, post.Comments, post.Creater)
 	if err != nil {
 		return fmt.Errorf("storage: delete post: %w", err)
+	}
+	query = `DELETE FROM post WHERE id = $1;`
+	_, err = s.db.Exec(query, post.Id)
+	if err != nil {
+		return fmt.Errorf("storage: delete post: %w", err)
+	}
+	return nil
+}
+
+func (s *PostStorage) ChangePost(newPost models.Post, postId int) error {
+	query := `UPDATE post SET title = $1, description = $2 WHERE id = $3;`
+	_, err := s.db.Exec(query, newPost.Title, newPost.Description, postId)
+	if err != nil {
+		return fmt.Errorf("storage: change post: %w", err)
+	}
+	query = `DELETE FROM post_category WHERE postId = $1;`
+	_, err = s.db.Exec(query, postId)
+	if err != nil {
+		return fmt.Errorf("storage: change post: %w", err)
+	}
+	query = `INSERT INTO post_category (postId, category) VALUES ($1, $2);`
+	for _, oneCategory := range newPost.Category {
+		_, err = s.db.Exec(query, postId, oneCategory)
+		if err != nil {
+			return fmt.Errorf("storage: create post: %w", err)
+		}
 	}
 	return nil
 }

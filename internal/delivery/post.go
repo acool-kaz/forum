@@ -207,11 +207,57 @@ func (h *Handler) deletePost(w http.ResponseWriter, r *http.Request) {
 		h.errorPage(w, http.StatusBadRequest, "you cant delete this post")
 		return
 	}
-	if err := h.Services.DeletePost(post.Id); err != nil {
+	if err := h.Services.DeletePost(post); err != nil {
 		h.errorPage(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func (h *Handler) changePost(w http.ResponseWriter, r *http.Request) {
+	user := h.userIdentity(w, r)
+	if user == (models.User{}) {
+		h.errorPage(w, http.StatusUnauthorized, "you cant change this post")
+		return
+	}
+	if r.Method != http.MethodPost {
+		h.errorPage(w, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
+		return
+	}
+	postId, err := strconv.Atoi(strings.TrimPrefix(r.URL.Path, "/post/change/"))
+	if err != nil {
+		h.errorPage(w, http.StatusNotFound, http.StatusText(http.StatusNotFound))
+		return
+	}
+	if err := r.ParseForm(); err != nil {
+		h.errorPage(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	category, ok := r.Form["category"]
+	if !ok {
+		h.errorPage(w, http.StatusBadRequest, "category field not found")
+		return
+	}
+	title, ok := r.Form["title"]
+	if !ok {
+		h.errorPage(w, http.StatusBadRequest, "title field not found")
+		return
+	}
+	description, ok := r.Form["description"]
+	if !ok {
+		h.errorPage(w, http.StatusBadRequest, "description field not found")
+		return
+	}
+	newPost := models.Post{
+		Title:       strings.Join(title, ""),
+		Description: strings.Join(description, ""),
+		Category:    strings.Fields(strings.Join(category, " ")),
+	}
+	if err := h.Services.ChangePost(newPost, postId); err != nil {
+		h.errorPage(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	http.Redirect(w, r, fmt.Sprintf("/post/%d", postId), http.StatusSeeOther)
 }
 
 func (h *Handler) likePost(w http.ResponseWriter, r *http.Request) {

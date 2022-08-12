@@ -33,7 +33,7 @@ func (s *UserStorage) GetPostByUsername(username string) ([]models.Post, error) 
 	}
 	for rows.Next() {
 		var post models.Post
-		if err := rows.Scan(&post.Id, &post.Creater, &post.Title, &post.Description, &post.CreatedAt, &post.Likes, &post.Dislikes); err != nil {
+		if err := rows.Scan(&post.Id, &post.Creater, &post.Title, &post.Description, &post.CreatedAt, &post.Likes, &post.Dislikes, &post.Comments); err != nil {
 			return nil, fmt.Errorf("storage: get post by username: %w", err)
 		}
 		posts = append(posts, post)
@@ -94,11 +94,10 @@ func (s *UserStorage) GetAllCategoryByPostId(postId int) ([]string, error) {
 
 func (s *UserStorage) GetUserByUsername(username string) (models.User, error) {
 	var user models.User
-	query := `SELECT id, email, username, posts, likes, comments FROM user WHERE username = $1;`
-	row := s.db.QueryRow(query, username)
-	err := row.Scan(&user.ID, &user.Email, &user.Username, &user.CountOfPosts, &user.CountOfLikes, &user.CountOfComments)
+	query := `SELECT id, email, username, posts, likes, dislikes, comments FROM user WHERE username = $1;`
+	err := s.db.QueryRow(query, username).Scan(&user.ID, &user.Email, &user.Username, &user.CountOfPosts, &user.CountOfLikes, &user.CountOfDislikes, &user.CountOfComments)
 	if err != nil {
 		return models.User{}, fmt.Errorf("storage: get user by username: %w", err)
 	}
-	return user, err
+	return user, nil
 }

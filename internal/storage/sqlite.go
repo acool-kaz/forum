@@ -26,6 +26,7 @@ const postTable = `CREATE TABLE IF NOT EXISTS post (
 	created_at DATE DEFAULT (datetime('now','localtime')),
 	likes INT DEFAULT 0,
 	dislikes INT DEFAULT 0,
+	comments INT DEFAULT 0,
 	FOREIGN KEY (creater) REFERENCES user(username)
 );`
 

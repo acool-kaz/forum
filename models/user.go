@@ -10,6 +10,7 @@ type User struct {
 	VerifyPassword  string
 	CountOfPosts    int
 	CountOfLikes    int
+	CountOfDislikes int
 	CountOfComments int
 	Token           string
 	ExpiresAt       time.Time

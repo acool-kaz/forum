@@ -11,4 +11,5 @@ type Post struct {
 	CreatedAt   time.Time
 	Likes       int
 	Dislikes    int
+	Comments    int
 }

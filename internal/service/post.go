@@ -22,7 +22,8 @@ type Post interface {
 	// GetPostsByTime(time string) ([]models.Post, error)
 	// GetPostsByLike(like string) ([]models.Post, error)
 	GetSimilarPosts(postId int) ([]models.Post, error)
-	DeletePost(postId int) error
+	DeletePost(post models.Post) error
+	ChangePost(newPost models.Post, postId int) error
 }
 
 type PostService struct {
@@ -201,10 +202,19 @@ func (s *PostService) GetSimilarPosts(postId int) ([]models.Post, error) {
 	return posts, nil
 }
 
-func (s *PostService) DeletePost(postId int) error {
-	err := s.storage.DeletePost(postId)
-	if err != nil {
+func (s *PostService) DeletePost(post models.Post) error {
+	if err := s.storage.DeletePost(post); err != nil {
 		return fmt.Errorf("service: delete post: %w", err)
+	}
+	return nil
+}
+
+func (s *PostService) ChangePost(newPost models.Post, postId int) error {
+	if isInvalidPost(newPost) {
+		return fmt.Errorf("service: create post: %w", ErrInvalidPost)
+	}
+	if err := s.storage.ChangePost(newPost, postId); err != nil {
+		return fmt.Errorf("service: change post: %w", err)
 	}
 	return nil
 }

@@ -10,7 +10,6 @@ type Comment interface {
 	GetComments(postId int) ([]models.Comment, error)
 	GetCommentById(commentId int) (models.Comment, error)
 	CreateComment(comment models.Comment) error
-	// GetPostByCommentId(commentId int) (models.Post, error)
 }
 
 type CommentStorage struct {
@@ -62,16 +61,10 @@ func (s *CommentStorage) CreateComment(comment models.Comment) error {
 	if err != nil {
 		return fmt.Errorf("storage: create comment: %w", err)
 	}
+	query = `UPDATE post SET comments = comments + 1 WHERE id = $1;`
+	_, err = s.db.Exec(query, comment.PostId)
+	if err != nil {
+		return fmt.Errorf("storage: create comment: %w", err)
+	}
 	return nil
 }
-
-// func (s *CommentStorage) GetPostByCommentId(commentId int) (models.Post, error) {
-// 	var post models.Post
-// 	query := `SELECT * FROM comment WHERE id = $1;`
-// 	row := s.db.QueryRow(query, commentId)
-// 	err := row.Scan(&post.Id, &post.Creater, &post.Title, &post.Description, &post.CreatedAt, &post.Likes, &post.Dislikes)
-// 	if err != nil {
-// 		return models.Post{}, fmt.Errorf("storage: get post by comment id: %w", err)
-// 	}
-// 	return post, nil
-// }

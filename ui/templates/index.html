@@ -21,10 +21,10 @@
                 <h1><a href="/">Forum</a></h1>
                 {{ if .User.Username }}
                 <div class="user">
-                    <button onclick="showModal()" class="notify"><i class="bi bi-bell"></i></button>
-                    <div class="modal">
+                    <button onclick="showModal('notification')" class="notify"><i class="bi bi-bell"></i></button>
+                    <div id="notification" class="modal" onclick="closeModal('notification');">
                         <div class="modal-content">
-                            <div class="modal-header">Notifications<span class='close' onclick='closeModal()'></span></div>
+                            <div class="modal-header">Notifications<span class='close' onclick='closeModal("notification")'></span></div>
                             <div class="modal-body">
                                 {{ range .Notifications }}
                                     <span><a href="/profile/{{ .From }}?posts=created">{{ .From }}</a> {{ .Description }} <a href="/post/{{ .PostId }}">{{ .PostId }}</a></span>
