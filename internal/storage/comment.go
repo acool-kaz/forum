@@ -10,6 +10,8 @@ type Comment interface {
 	GetComments(postId int) ([]models.Comment, error)
 	GetCommentById(commentId int) (models.Comment, error)
 	CreateComment(comment models.Comment) error
+	DeleteComment(comment models.Comment) error
+	ChangeComment(comment models.Comment) error
 }
 
 type CommentStorage struct {
@@ -65,6 +67,29 @@ func (s *CommentStorage) CreateComment(comment models.Comment) error {
 	_, err = s.db.Exec(query, comment.PostId)
 	if err != nil {
 		return fmt.Errorf("storage: create comment: %w", err)
+	}
+	return nil
+}
+
+func (s *CommentStorage) DeleteComment(comment models.Comment) error {
+	query := `DELETE FROM comment WHERE id = $1;`
+	_, err := s.db.Exec(query, comment.Id)
+	if err != nil {
+		return fmt.Errorf("storage: delete comment: %w", err)
+	}
+	query = `UPDATE post SET comments = comments - 1 WHERE id = $1`
+	_, err = s.db.Exec(query, comment.PostId)
+	if err != nil {
+		return fmt.Errorf("storage: delete comment: %w", err)
+	}
+	return nil
+}
+
+func (s *CommentStorage) ChangeComment(comment models.Comment) error {
+	query := `UPDATE comment SET text = $1 WHERE id = $2;`
+	_, err := s.db.Exec(query, comment.Text, comment.Id)
+	if err != nil {
+		return fmt.Errorf("storage: delete comment: %w", err)
 	}
 	return nil
 }

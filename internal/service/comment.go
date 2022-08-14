@@ -14,6 +14,8 @@ type Comment interface {
 	GetComments(postId int) ([]models.Comment, error)
 	GetCommentById(commentId int) (models.Comment, error)
 	CreateComment(comment models.Comment) error
+	DeleteComment(comment models.Comment) error
+	ChangeComment(comment models.Comment) error
 	// GetPostByCommentId(commentId int) (models.Post, error)
 }
 
@@ -49,6 +51,23 @@ func (s *CommentService) CreateComment(comment models.Comment) error {
 	}
 	if err := s.storage.CreateComment(comment); err != nil {
 		return fmt.Errorf("service: create comment: %w", err)
+	}
+	return nil
+}
+
+func (s *CommentService) DeleteComment(comment models.Comment) error {
+	if err := s.storage.DeleteComment(comment); err != nil {
+		return fmt.Errorf("service: delete comment: %w", err)
+	}
+	return nil
+}
+
+func (s *CommentService) ChangeComment(comment models.Comment) error {
+	if strings.ReplaceAll(comment.Text, " ", "") == "" {
+		return fmt.Errorf("service: create comment: %w", ErrInvalidComment)
+	}
+	if err := s.storage.ChangeComment(comment); err != nil {
+		return fmt.Errorf("service: delete comment: %w", err)
 	}
 	return nil
 }

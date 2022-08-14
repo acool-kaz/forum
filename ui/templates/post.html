@@ -164,6 +164,27 @@
                                     </button>
                                 </form>
                             </div>
+                            <form action="/comment/delete/{{ .Id }}" method="post">
+                                <button class="btn">Delete</button>
+                            </form>
+                            <button class="btn" onclick="showModal('change-comment{{.Id}}');">Change</button>
+                            <div class="modal" id="change-comment{{.Id}}" onclick="closeModal('change-comment{{.Id}}');">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        Change Comment
+                                        <span class='close' onclick="closeModal('change-comment{{.Id}}')"></span>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form class="change-comment" action="/comment/change/{{ .Id }}" method="POST" autocomplete="off">
+                                            <fieldset>
+                                                <legend>Text</legend>
+                                                <textarea name="description" name="text" required>{{ .Text }}</textarea>
+                                            </fieldset>
+                                            <button class="btn">Change</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         {{ else }}
                         <h1>Empty</h1>
@@ -237,7 +258,7 @@
             category.innerHTML += `<div class='change-tag'>` + element + `<span class='delete-tag' onclick='del(this)' /></div>`
         })
     </script>
-    <script src="/static/script/notification.js"></script>
+    <script src="/static/script/modal.js"></script>
     <script src="/static/script/changePost.js"></script>
 </body>
 
