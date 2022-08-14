@@ -93,7 +93,7 @@ func (s *PostStorage) GetPostsByCategory(category string) ([]models.Post, error)
 	}
 	for rows.Next() {
 		var post models.Post
-		if err := rows.Scan(&post.Id, &post.Creater, &post.Title, &post.Description, &post.CreatedAt, &post.Likes, &post.Dislikes); err != nil {
+		if err := rows.Scan(&post.Id, &post.Creater, &post.Title, &post.Description, &post.CreatedAt, &post.Likes, &post.Dislikes, &post.Comments); err != nil {
 			return nil, fmt.Errorf("storage: get post by category: %w", err)
 		}
 		posts = append(posts, post)
@@ -110,7 +110,7 @@ func (s *PostStorage) GetPostByTimeNew() ([]models.Post, error) {
 	}
 	for rows.Next() {
 		var post models.Post
-		if err := rows.Scan(&post.Id, &post.Creater, &post.Title, &post.Description, &post.CreatedAt, &post.Likes, &post.Dislikes); err != nil {
+		if err := rows.Scan(&post.Id, &post.Creater, &post.Title, &post.Description, &post.CreatedAt, &post.Likes, &post.Dislikes, &post.Comments); err != nil {
 			return nil, fmt.Errorf("storage: get post by time new: %w", err)
 		}
 		posts = append(posts, post)
@@ -127,7 +127,7 @@ func (s *PostStorage) GetPostByTimeOld() ([]models.Post, error) {
 	}
 	for rows.Next() {
 		var post models.Post
-		if err := rows.Scan(&post.Id, &post.Creater, &post.Title, &post.Description, &post.CreatedAt, &post.Likes, &post.Dislikes); err != nil {
+		if err := rows.Scan(&post.Id, &post.Creater, &post.Title, &post.Description, &post.CreatedAt, &post.Likes, &post.Dislikes, &post.Comments); err != nil {
 			return nil, fmt.Errorf("storage: get post by time old: %w", err)
 		}
 		posts = append(posts, post)
@@ -144,7 +144,7 @@ func (s *PostStorage) GetPostByLikeMost() ([]models.Post, error) {
 	}
 	for rows.Next() {
 		var post models.Post
-		if err := rows.Scan(&post.Id, &post.Creater, &post.Title, &post.Description, &post.CreatedAt, &post.Likes, &post.Dislikes); err != nil {
+		if err := rows.Scan(&post.Id, &post.Creater, &post.Title, &post.Description, &post.CreatedAt, &post.Likes, &post.Dislikes, &post.Comments); err != nil {
 			return nil, fmt.Errorf("storage: get post by like most: %w", err)
 		}
 		posts = append(posts, post)
@@ -161,7 +161,7 @@ func (s *PostStorage) GetPostByLikeLeast() ([]models.Post, error) {
 	}
 	for rows.Next() {
 		var post models.Post
-		if err := rows.Scan(&post.Id, &post.Creater, &post.Title, &post.Description, &post.CreatedAt, &post.Likes, &post.Dislikes); err != nil {
+		if err := rows.Scan(&post.Id, &post.Creater, &post.Title, &post.Description, &post.CreatedAt, &post.Likes, &post.Dislikes, &post.Comments); err != nil {
 			return nil, fmt.Errorf("storage: get post by like least: %w", err)
 		}
 		posts = append(posts, post)
