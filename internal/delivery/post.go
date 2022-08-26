@@ -6,7 +6,10 @@ import (
 	"fmt"
 	"forum/internal/service"
 	"forum/models"
+	"io"
+	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -144,7 +147,7 @@ func (h *Handler) createPost(w http.ResponseWriter, r *http.Request) {
 			h.errorPage(w, http.StatusInternalServerError, err.Error())
 		}
 	case http.MethodPost:
-		if err := r.ParseForm(); err != nil {
+		if err := r.ParseMultipartForm(10 << 20); err != nil {
 			h.errorPage(w, http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -169,13 +172,43 @@ func (h *Handler) createPost(w http.ResponseWriter, r *http.Request) {
 			Title:       title[0],
 			Description: description[0],
 		}
-		if err := h.Services.CreatePost(post); err != nil {
+		postId, err := h.Services.CreatePost(post)
+		if err != nil {
 			if errors.Is(err, service.ErrInvalidPost) {
 				h.errorPage(w, http.StatusBadRequest, err.Error())
 				return
 			}
 			h.errorPage(w, http.StatusInternalServerError, err.Error())
 			return
+		}
+		file, ok := r.MultipartForm.File["image"]
+		if ok {
+			if err := os.MkdirAll(fmt.Sprintf("./ui/static/img/%d", postId), os.ModePerm); err != nil {
+				log.Fatal(err)
+			}
+			for _, s := range file {
+				file, err := s.Open()
+				if err != nil {
+					h.errorPage(w, http.StatusBadRequest, err.Error())
+					return
+				}
+				defer file.Close()
+				out, err := os.Create(fmt.Sprintf("./ui/static/img/%d/%s", postId, s.Filename))
+				if err != nil {
+					h.errorPage(w, http.StatusInternalServerError, err.Error())
+					return
+				}
+				defer out.Close()
+				_, err = io.Copy(out, file)
+				if err != nil {
+					h.errorPage(w, http.StatusInternalServerError, err.Error())
+					return
+				}
+				if err := h.Services.SaveImageForPost(postId, fmt.Sprintf("/static/img/%d/%s", postId, s.Filename)); err != nil {
+					h.errorPage(w, http.StatusInternalServerError, err.Error())
+					return
+				}
+			}
 		}
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 	default:

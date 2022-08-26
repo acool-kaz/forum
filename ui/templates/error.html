@@ -7,14 +7,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style/error.css">
     <title>Document</title>
 </head>
 
 <body>
     <a href="/">HOME</a>
-    <h1>{{ .Status }}</h1>
-    <h1>{{ .Message }}</h1>
+    <div class="error">
+        <div class="err-msg"></div>
+        <div class="pointer"></div>
+    </div>
+    <a class="restart">RESTART</a>
 </body>
+<script>
+    const errMsg = document.querySelector('.err-msg')
+
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async function fillText(text) {
+        const chars = text.split('')
+        for (i = 0; i < chars.length; i++) {
+            await sleep(100);
+            errMsg.innerHTML += chars[i]
+        }
+    }
+
+    const text = '{{ .Status }}, {{ .Message }}'
+
+    fillText(text);
+
+    document.querySelector('.restart').addEventListener('click', () => {
+        errMsg.innerHTML = ''
+        fillText(text);
+    });
+</script>
 
 </html>

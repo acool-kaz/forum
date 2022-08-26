@@ -71,18 +71,20 @@ const notifyTable = `CREATE TABLE IF NOT EXISTS notification (
 	FOREIGN KEY (postId) REFERENCES post(id) ON DELETE CASCADE
 );`
 
-var tables = []string{userTable, postTable, postCategoryTable, commentTable, likesTable, dislikeTable, notifyTable}
+const postImagesTable = `CREATE TABLE IF NOT EXISTS post_images (
+	postId INTEGER,
+	image TEXT,
+	FOREIGN KEY (postId) REFERENCES post(id) ON DELETE CASCADE
+);`
+
+var tables = []string{userTable, postTable, postCategoryTable, commentTable, likesTable, dislikeTable, notifyTable, postImagesTable}
 
 func InitDB() (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", "forum.db")
+	db, err := sql.Open("sqlite3", "forum.db?_foreign_keys=1")
 	if err != nil {
 		return nil, fmt.Errorf("storage: init db: %w", err)
 	}
 	if err := db.Ping(); err != nil {
-		return nil, fmt.Errorf("storage: init db: %w", err)
-	}
-	_, err = db.Exec("PRAGMA foreign_keys = ON")
-	if err != nil {
 		return nil, fmt.Errorf("storage: init db: %w", err)
 	}
 	return db, nil

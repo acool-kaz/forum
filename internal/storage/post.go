@@ -7,7 +7,7 @@ import (
 )
 
 type Post interface {
-	CreatePost(post models.Post) error
+	CreatePost(post models.Post) (int, error)
 	GetAllPost() ([]models.Post, error)
 	GetPostById(postId int) (models.Post, error)
 	GetPostsByCategory(category string) ([]models.Post, error)
@@ -19,6 +19,8 @@ type Post interface {
 	GetAllCategoryByPostId(postId int) ([]string, error)
 	DeletePost(post models.Post) error
 	ChangePost(newPost models.Post, postId int) error
+	GetAllImagesByPostId(postId int) ([]string, error)
+	SaveImageForPost(postId int, imgPath string) error
 }
 
 type PostStorage struct {
@@ -31,29 +33,29 @@ func newPostStorage(db *sql.DB) *PostStorage {
 	}
 }
 
-func (s *PostStorage) CreatePost(post models.Post) error {
+func (s *PostStorage) CreatePost(post models.Post) (int, error) {
 	query := `INSERT INTO post (creater, title, description) VALUES ($1, $2, $3);`
 	result, err := s.db.Exec(query, post.Creater, post.Title, post.Description)
 	if err != nil {
-		return fmt.Errorf("storage: create post: %w", err)
+		return 0, fmt.Errorf("storage: create post: %w", err)
+	}
+	postId, err := result.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("storage: create post: %w", err)
 	}
 	query = `UPDATE user SET posts = posts + 1 WHERE username = $1;`
 	_, err = s.db.Exec(query, post.Creater)
 	if err != nil {
-		return fmt.Errorf("storage: create post: %w", err)
+		return 0, fmt.Errorf("storage: create post: %w", err)
 	}
 	query = `INSERT INTO post_category (postId, category) VALUES ($1, $2);`
-	postId, err := result.LastInsertId()
-	if err != nil {
-		return fmt.Errorf("storage: create post: %w", err)
-	}
 	for _, oneCategory := range post.Category {
 		_, err := s.db.Exec(query, postId, oneCategory)
 		if err != nil {
-			return fmt.Errorf("storage: create post: %w", err)
+			return 0, fmt.Errorf("storage: create post: %w", err)
 		}
 	}
-	return nil
+	return int(postId), nil
 }
 
 func (s *PostStorage) GetAllPost() ([]models.Post, error) {
@@ -241,6 +243,32 @@ func (s *PostStorage) ChangePost(newPost models.Post, postId int) error {
 		if err != nil {
 			return fmt.Errorf("storage: create post: %w", err)
 		}
+	}
+	return nil
+}
+
+func (s *PostStorage) GetAllImagesByPostId(postId int) ([]string, error) {
+	var images []string
+	query := `SELECT image FROM post_images WHERE postId = $1;`
+	rows, err := s.db.Query(query, postId)
+	if err != nil {
+		return nil, fmt.Errorf("storage: get all image by post id: %w", err)
+	}
+	for rows.Next() {
+		var image string
+		if err := rows.Scan(&image); err != nil {
+			return nil, fmt.Errorf("storage: get all image by post id: %w", err)
+		}
+		images = append(images, image)
+	}
+	return images, nil
+}
+
+func (s *PostStorage) SaveImageForPost(postId int, imgPath string) error {
+	query := `INSERT INTO post_images(postId, image) values ($1, $2);`
+	_, err := s.db.Exec(query, postId, imgPath)
+	if err != nil {
+		return fmt.Errorf("storage: save image for post: %w", err)
 	}
 	return nil
 }

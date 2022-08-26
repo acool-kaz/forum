@@ -12,4 +12,5 @@ type Post struct {
 	Likes       int
 	Dislikes    int
 	Comments    int
+	Images      []string
 }

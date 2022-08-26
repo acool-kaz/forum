@@ -1,7 +1,13 @@
 * {
     margin: 0;
     padding: 0;
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Roboto Mono', monospace;
+}
+
+i {
+    font-size: 18px;
+    display: flex;
+    align-items: center;
 }
 
 a {
@@ -13,7 +19,6 @@ a {
 .modal {
     display: none;
     position: fixed;
-    /* position: absolute; */
     top: 0;
     left: 0;
     min-height: 100vh;
@@ -78,8 +83,6 @@ a {
     gap: 10px;
     word-wrap: break-word;
     line-height: 25px;
-    /* height: 300px; */
-    /* overflow-y: auto; */
     padding: 0 15px;
 }
 
@@ -260,6 +263,22 @@ header {
     word-break: break-all;
 }
 
+.img-container {
+    position: relative;
+    height: 600px;
+}
+
+.img-container>img {
+    display: none;
+    position: absolute;
+    left: 50%;
+    right: 50%;
+    transform: translate(-50%, 0);
+    height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+}
+
 .post-info {
     width: 20%;
     padding-left: 50px;
@@ -296,7 +315,16 @@ header {
 
 .react {
     display: flex;
-    font-size: 26px;
+    align-items: center;
+}
+
+.react p {
+    font-size: 20px;
+}
+
+.reactPost {
+    display: flex;
+    align-items: center;
 }
 
 .tooltip {
@@ -310,13 +338,12 @@ header {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    width: 120px;
-    min-height: 50px;
-    background-color: black;
+    width: fit-content;
+    height: fit-content;
+    background-color: #353636;
     color: #fff;
     text-align: center;
-    border-radius: 6px;
-    padding: 5px 0;
+    padding: 5px;
     position: absolute;
     z-index: 1;
     top: 100%;
@@ -416,6 +443,31 @@ header {
     word-wrap: break-word;
 }
 
+.one-comment {
+    padding: 10px;
+    border-bottom: 1px solid #353636;
+}
+
+.comment-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.comment-modification {
+    display: flex;
+    gap: 15px;
+}
+
+.comment {
+    padding: 5px;
+}
+
+.reactComment {
+    display: flex;
+    align-items: center;
+}
+
 .send-comment {
     width: 20%;
     padding-left: 50px;
@@ -469,6 +521,7 @@ header {
 
 .comment-reaction {
     display: flex;
+    gap: 5px;
 }
 
 .comment-reaction button {

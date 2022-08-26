@@ -125,6 +125,11 @@ func (s *LikeDislikePostStorage) DislikePost(postId int, username string) error 
 	if err != nil {
 		return fmt.Errorf("storage: dislike post: %w", err)
 	}
+	query = `UPDATE user SET dislikes = dislikes + 1 WHERE username = (SELECT creater FROM post WHERE id = $1);`
+	_, err = s.db.Exec(query, postId)
+	if err != nil {
+		return fmt.Errorf("storage: remove dislike from post: %w", err)
+	}
 	return nil
 }
 

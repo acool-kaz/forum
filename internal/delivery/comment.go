@@ -137,7 +137,7 @@ func (h *Handler) changeComment(w http.ResponseWriter, r *http.Request) {
 		h.errorPage(w, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
 		return
 	}
-	commentId, err := strconv.Atoi(strings.TrimPrefix(r.URL.Path, "/comment/delete/"))
+	commentId, err := strconv.Atoi(strings.TrimPrefix(r.URL.Path, "/comment/change/"))
 	if err != nil {
 		h.errorPage(w, http.StatusNotFound, http.StatusText(http.StatusNotFound))
 		return
@@ -147,17 +147,17 @@ func (h *Handler) changeComment(w http.ResponseWriter, r *http.Request) {
 		h.errorPage(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+	if user.Username != comment.Creater {
+		h.errorPage(w, http.StatusBadRequest, "you can`t change this comment")
+		return
+	}
 	if err := r.ParseForm(); err != nil {
 		h.errorPage(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 	text, ok := r.Form["text"]
 	if !ok {
-		h.errorPage(w, http.StatusInternalServerError, "text field does not found")
-		return
-	}
-	if user.Username != comment.Creater {
-		h.errorPage(w, http.StatusBadRequest, "you cant delete this comment")
+		h.errorPage(w, http.StatusInternalServerError, "text field not found")
 		return
 	}
 	comment.Text = strings.Join(text, "")

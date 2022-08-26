@@ -1,13 +1,19 @@
 * {
     margin: 0;
     padding: 0;
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Roboto Mono', monospace;
 }
 
 a {
     text-decoration: none;
     color: black;
     transition: all .1s linear;
+}
+
+i {
+    font-size: 18px;
+    display: flex;
+    align-items: center;
 }
 
 .modal {

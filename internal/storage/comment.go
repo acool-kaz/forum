@@ -77,6 +77,11 @@ func (s *CommentStorage) DeleteComment(comment models.Comment) error {
 	if err != nil {
 		return fmt.Errorf("storage: delete comment: %w", err)
 	}
+	query = `UPDATE user SET comments = comments - 1 WHERE username = (SELECT creater FROM post WHERE id = $1);`
+	_, err = s.db.Exec(query, comment.PostId)
+	if err != nil {
+		return fmt.Errorf("storage: delete comment: %w", err)
+	}
 	query = `UPDATE post SET comments = comments - 1 WHERE id = $1`
 	_, err = s.db.Exec(query, comment.PostId)
 	if err != nil {

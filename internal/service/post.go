@@ -14,16 +14,14 @@ var (
 )
 
 type Post interface {
-	CreatePost(post models.Post) error
+	CreatePost(post models.Post) (int, error)
 	GetAllPost() ([]models.Post, error)
 	GetPostById(postId int) (models.Post, error)
 	GetAllPostBy(user models.User, query map[string][]string) ([]models.Post, error)
-	// GetPostsByCategory(category string) ([]models.Post, error)
-	// GetPostsByTime(time string) ([]models.Post, error)
-	// GetPostsByLike(like string) ([]models.Post, error)
 	GetSimilarPosts(postId int) ([]models.Post, error)
 	DeletePost(post models.Post) error
 	ChangePost(newPost models.Post, postId int) error
+	SaveImageForPost(postId int, imgPath string) error
 }
 
 type PostService struct {
@@ -36,16 +34,17 @@ func newPostService(storage storage.Post) *PostService {
 	}
 }
 
-func (s *PostService) CreatePost(post models.Post) error {
+func (s *PostService) CreatePost(post models.Post) (int, error) {
 	post.Category = strings.Fields(strings.Join(append(post.Category[1:], post.Category[:1]...), " "))
 	post.Category = deleteDuplicate(post.Category)
 	if isInvalidPost(post) {
-		return fmt.Errorf("service: create post: %w", ErrInvalidPost)
+		return 0, fmt.Errorf("service: create post: %w", ErrInvalidPost)
 	}
-	if err := s.storage.CreatePost(post); err != nil {
-		return fmt.Errorf("service: create post: %w", err)
+	id, err := s.storage.CreatePost(post)
+	if err != nil {
+		return 0, fmt.Errorf("service: create post: %w", err)
 	}
-	return nil
+	return id, nil
 }
 
 func (s *PostService) GetAllPost() ([]models.Post, error) {
@@ -69,6 +68,10 @@ func (s *PostService) GetPostById(postId int) (models.Post, error) {
 		return post, fmt.Errorf("service: get post by id: %w", err)
 	}
 	post.Category, err = s.storage.GetAllCategoryByPostId(post.Id)
+	if err != nil {
+		return post, fmt.Errorf("service: get post by id: %w", err)
+	}
+	post.Images, err = s.storage.GetAllImagesByPostId(post.Id)
 	if err != nil {
 		return post, fmt.Errorf("service: get post by id: %w", err)
 	}
@@ -125,75 +128,6 @@ func (s *PostService) GetAllPostBy(user models.User, query map[string][]string) 
 	return posts, nil
 }
 
-// func (s *PostService) GetPostsByCategory(category string) ([]models.Post, error) {
-// 	posts, err := s.storage.GetPostsByCategory(category)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	for i := range posts {
-// 		category, err := s.storage.GetAllCategoryByPostId(posts[i].Id)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		posts[i].Category = category
-// 	}
-// 	return posts, nil
-// }
-
-// func (s *PostService) GetPostsByTime(time string) ([]models.Post, error) {
-// 	var posts []models.Post
-// 	var err error
-// 	switch time {
-// 	case "new":
-// 		posts, err = s.storage.GetPostByTimeNew()
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 	case "old":
-// 		posts, err = s.storage.GetPostByTimeOld()
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 	default:
-// 		return nil, fmt.Errorf("invalid argument for filter by time")
-// 	}
-// 	for i := range posts {
-// 		category, err := s.storage.GetAllCategoryByPostId(posts[i].Id)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		posts[i].Category = category
-// 	}
-// 	return posts, nil
-// }
-
-// func (s *PostService) GetPostsByLike(like string) ([]models.Post, error) {
-// 	var posts []models.Post
-// 	var err error
-// 	switch like {
-// 	case "most":
-// 		posts, err = s.storage.GetPostByLikeMost()
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 	case "least":
-// 		posts, err = s.storage.GetPostByLikeLeast()
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 	default:
-// 		return nil, fmt.Errorf("invalid argument for filter by time")
-// 	}
-// 	for i := range posts {
-// 		category, err := s.storage.GetAllCategoryByPostId(posts[i].Id)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		posts[i].Category = category
-// 	}
-// 	return posts, nil
-// }
-
 func (s *PostService) GetSimilarPosts(postId int) ([]models.Post, error) {
 	posts, err := s.storage.GetSimilarPosts(postId)
 	if err != nil {
@@ -215,6 +149,13 @@ func (s *PostService) ChangePost(newPost models.Post, postId int) error {
 	}
 	if err := s.storage.ChangePost(newPost, postId); err != nil {
 		return fmt.Errorf("service: change post: %w", err)
+	}
+	return nil
+}
+
+func (s *PostService) SaveImageForPost(postId int, imgPath string) error {
+	if err := s.storage.SaveImageForPost(postId, imgPath); err != nil {
+		return fmt.Errorf("service: save image for post: %w", err)
 	}
 	return nil
 }

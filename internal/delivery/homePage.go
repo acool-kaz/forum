@@ -45,39 +45,6 @@ func (h *Handler) homePage(w http.ResponseWriter, r *http.Request) {
 			h.errorPage(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		// for key, val := range r.URL.Query() {
-		// 	switch key {
-		// 	case "category":
-		// 		posts, err = h.Services.GetPostsByCategory(strings.Join(val, ""))
-		// 		if err != nil {
-		// 			h.errorPage(w, http.StatusInternalServerError, err.Error())
-		// 			return
-		// 		}
-		// 	case "time":
-		// 		if user == (models.User{}) {
-		// 			h.errorPage(w, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
-		// 			return
-		// 		}
-		// 		posts, err = h.Services.GetPostsByTime(strings.Join(val, ""))
-		// 		if err != nil {
-		// 			h.errorPage(w, http.StatusInternalServerError, err.Error())
-		// 			return
-		// 		}
-		// 	case "likes":
-		// 		if user == (models.User{}) {
-		// 			h.errorPage(w, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
-		// 			return
-		// 		}
-		// 		posts, err = h.Services.GetPostsByLike(strings.Join(val, ""))
-		// 		if err != nil {
-		// 			h.errorPage(w, http.StatusInternalServerError, err.Error())
-		// 			return
-		// 		}
-		// 	default:
-		// 		h.errorPage(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
-		// 		return
-		// 	}
-		// }
 	}
 	info := models.Info{
 		Posts:         posts,
