@@ -25,7 +25,7 @@ func (h *Handler) likeComment(w http.ResponseWriter, r *http.Request) {
 		h.errorPage(w, http.StatusNotFound, err.Error())
 		return
 	}
-	comment, err := h.Services.GetCommentById(id)
+	comment, err := h.services.GetCommentById(id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			h.errorPage(w, http.StatusNotFound, err.Error())
@@ -34,7 +34,7 @@ func (h *Handler) likeComment(w http.ResponseWriter, r *http.Request) {
 		h.errorPage(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	if err := h.Services.LikeComment(comment.Id, user.Username); err != nil {
+	if err := h.services.LikeComment(comment.Id, user.Username); err != nil {
 		h.errorPage(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -45,7 +45,7 @@ func (h *Handler) likeComment(w http.ResponseWriter, r *http.Request) {
 			Description: "liked comment under the post",
 			PostId:      comment.PostId,
 		}
-		if err := h.Services.AddNewNotification(newNotification); err != nil {
+		if err := h.services.AddNewNotification(newNotification); err != nil {
 			h.errorPage(w, http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -68,7 +68,7 @@ func (h *Handler) dislikeComment(w http.ResponseWriter, r *http.Request) {
 		h.errorPage(w, http.StatusNotFound, err.Error())
 		return
 	}
-	comment, err := h.Services.GetCommentById(id)
+	comment, err := h.services.GetCommentById(id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			h.errorPage(w, http.StatusNotFound, err.Error())
@@ -77,7 +77,7 @@ func (h *Handler) dislikeComment(w http.ResponseWriter, r *http.Request) {
 		h.errorPage(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	if err := h.Services.DislikeComment(id, user.Username); err != nil {
+	if err := h.services.DislikeComment(id, user.Username); err != nil {
 		h.errorPage(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -88,7 +88,7 @@ func (h *Handler) dislikeComment(w http.ResponseWriter, r *http.Request) {
 			Description: "disliked comment under the post",
 			PostId:      comment.PostId,
 		}
-		if err := h.Services.AddNewNotification(newNotification); err != nil {
+		if err := h.services.AddNewNotification(newNotification); err != nil {
 			h.errorPage(w, http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -111,7 +111,7 @@ func (h *Handler) deleteComment(w http.ResponseWriter, r *http.Request) {
 		h.errorPage(w, http.StatusNotFound, http.StatusText(http.StatusNotFound))
 		return
 	}
-	comment, err := h.Services.GetCommentById(commentId)
+	comment, err := h.services.GetCommentById(commentId)
 	if err != nil {
 		h.errorPage(w, http.StatusNotFound, err.Error())
 		return
@@ -120,7 +120,7 @@ func (h *Handler) deleteComment(w http.ResponseWriter, r *http.Request) {
 		h.errorPage(w, http.StatusBadRequest, "you cant delete this comment")
 		return
 	}
-	if err := h.Services.DeleteComment(comment); err != nil {
+	if err := h.services.DeleteComment(comment); err != nil {
 		h.errorPage(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -142,7 +142,7 @@ func (h *Handler) changeComment(w http.ResponseWriter, r *http.Request) {
 		h.errorPage(w, http.StatusNotFound, http.StatusText(http.StatusNotFound))
 		return
 	}
-	comment, err := h.Services.GetCommentById(commentId)
+	comment, err := h.services.GetCommentById(commentId)
 	if err != nil {
 		h.errorPage(w, http.StatusInternalServerError, err.Error())
 		return
@@ -161,7 +161,7 @@ func (h *Handler) changeComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	comment.Text = strings.Join(text, "")
-	if err := h.Services.ChangeComment(comment); err != nil {
+	if err := h.services.ChangeComment(comment); err != nil {
 		h.errorPage(w, http.StatusInternalServerError, err.Error())
 		return
 	}

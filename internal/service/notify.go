@@ -8,7 +8,7 @@ import (
 
 type Notification interface {
 	AddNewNotification(notification models.Notification) error
-	GetAllNotificationForUser(username string) ([]models.Notification, error)
+	GetAllNotificationForUser(user models.User) ([]models.Notification, error)
 	DeleteNotification(notificationId int) error
 }
 
@@ -30,8 +30,11 @@ func (s *NotificationService) AddNewNotification(notification models.Notificatio
 	return nil
 }
 
-func (s *NotificationService) GetAllNotificationForUser(username string) ([]models.Notification, error) {
-	notifies, err := s.storage.GetAllNotificationForUser(username)
+func (s *NotificationService) GetAllNotificationForUser(user models.User) ([]models.Notification, error) {
+	if user == (models.User{}) {
+		return nil, nil
+	}
+	notifies, err := s.storage.GetAllNotificationForUser(user.Username)
 	if err != nil {
 		return nil, fmt.Errorf("service: get all notification for user: %w", err)
 	}

@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"mime/multipart"
+	"time"
+)
 
 type Post struct {
 	Id          int
@@ -12,5 +15,6 @@ type Post struct {
 	Likes       int
 	Dislikes    int
 	Comments    int
+	Files       []*multipart.FileHeader
 	Images      []string
 }

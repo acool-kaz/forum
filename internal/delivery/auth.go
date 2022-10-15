@@ -15,7 +15,7 @@ func (h *Handler) signUp(w http.ResponseWriter, r *http.Request) {
 	}
 	switch r.Method {
 	case http.MethodGet:
-		if err := h.Tmpl.ExecuteTemplate(w, "register.html", nil); err != nil {
+		if err := h.tmpl.ExecuteTemplate(w, "register.html", nil); err != nil {
 			h.errorPage(w, http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -50,7 +50,7 @@ func (h *Handler) signUp(w http.ResponseWriter, r *http.Request) {
 			Password:       password[0],
 			VerifyPassword: verifyPassword[0],
 		}
-		if err := h.Services.Auth.CreateUser(user); err != nil {
+		if err := h.services.Auth.CreateUser(user); err != nil {
 			if errors.Is(err, service.ErrInvalidUserName) ||
 				errors.Is(err, service.ErrPasswordDontMatch) ||
 				errors.Is(err, service.ErrInvalidEmail) ||
@@ -72,7 +72,7 @@ func (h *Handler) signIn(w http.ResponseWriter, r *http.Request) {
 	}
 	switch r.Method {
 	case http.MethodGet:
-		if err := h.Tmpl.ExecuteTemplate(w, "login.html", nil); err != nil {
+		if err := h.tmpl.ExecuteTemplate(w, "login.html", nil); err != nil {
 			h.errorPage(w, http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -91,7 +91,7 @@ func (h *Handler) signIn(w http.ResponseWriter, r *http.Request) {
 			h.errorPage(w, http.StatusBadRequest, "password field not found")
 			return
 		}
-		sessionToken, expiresAt, err := h.Services.Auth.GenerateSessionToken(username[0], password[0])
+		sessionToken, expiresAt, err := h.services.Auth.GenerateSessionToken(username[0], password[0])
 		if err != nil {
 			if errors.Is(err, service.ErrUserNotFound) {
 				h.errorPage(w, http.StatusBadRequest, err.Error())
@@ -131,7 +131,7 @@ func (h *Handler) logOut(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.Services.DeleteSessionToken(c.Value); err != nil {
+	if err := h.services.DeleteSessionToken(c.Value); err != nil {
 		h.errorPage(w, http.StatusInternalServerError, err.Error())
 		return
 	}

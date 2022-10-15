@@ -11,7 +11,7 @@ import (
 func (h *Handler) userProfilePage(w http.ResponseWriter, r *http.Request) {
 	user := h.userIdentity(w, r)
 	username := strings.TrimPrefix(r.URL.Path, "/profile/")
-	userPage, err := h.Services.GetUserByUsername(username)
+	userPage, err := h.services.GetUserByUsername(username)
 	if err != nil {
 		h.errorPage(w, http.StatusNotFound, err.Error())
 		return
@@ -20,7 +20,7 @@ func (h *Handler) userProfilePage(w http.ResponseWriter, r *http.Request) {
 		h.errorPage(w, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
 		return
 	}
-	posts, err := h.Services.GetPostByUsername(userPage.Username, r.URL.Query())
+	posts, err := h.services.GetPostByUsername(userPage.Username, r.URL.Query())
 	if err != nil {
 		if errors.Is(err, service.ErrInvalidQuery) {
 			h.errorPage(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
@@ -29,7 +29,7 @@ func (h *Handler) userProfilePage(w http.ResponseWriter, r *http.Request) {
 		h.errorPage(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	notifications, err := h.Services.GetAllNotificationForUser(user.Username)
+	notifications, err := h.services.GetAllNotificationForUser(user)
 	if err != nil {
 		h.errorPage(w, http.StatusInternalServerError, err.Error())
 		return
@@ -40,7 +40,7 @@ func (h *Handler) userProfilePage(w http.ResponseWriter, r *http.Request) {
 		Posts:         posts,
 		Notifications: notifications,
 	}
-	if err := h.Tmpl.ExecuteTemplate(w, "user.html", info); err != nil {
+	if err := h.tmpl.ExecuteTemplate(w, "user.html", info); err != nil {
 		h.errorPage(w, http.StatusInternalServerError, err.Error())
 	}
 }

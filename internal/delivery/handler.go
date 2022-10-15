@@ -1,46 +1,50 @@
 package delivery
 
 import (
+	"context"
 	"forum/internal/service"
 	"html/template"
 	"net/http"
 )
 
 type Handler struct {
-	Mux      *http.ServeMux
-	Tmpl     *template.Template
-	Services *service.Service
+	tmpl     *template.Template
+	ctx      context.Context
+	services *service.Service
 }
 
 func NewHandler(services *service.Service) *Handler {
 	return &Handler{
-		Mux:      http.NewServeMux(),
-		Tmpl:     template.Must(template.ParseGlob("./ui/templates/*.html")),
-		Services: services,
+		tmpl:     template.Must(template.ParseGlob("./ui/templates/*.html")),
+		ctx:      context.Background(),
+		services: services,
 	}
 }
 
-func (h *Handler) InitRoutes() {
-	h.Mux.HandleFunc("/", h.homePage)
+func (h *Handler) InitRoutes() *http.ServeMux {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", h.homePage)
 
-	h.Mux.HandleFunc("/auth/signin", h.signIn)
-	h.Mux.HandleFunc("/auth/signup", h.signUp)
-	h.Mux.HandleFunc("/auth/logout", h.logOut)
+	mux.HandleFunc("/auth/signin", h.signIn)
+	mux.HandleFunc("/auth/signup", h.signUp)
+	mux.HandleFunc("/auth/logout", h.logOut)
 
-	h.Mux.HandleFunc("/post/", h.post)
-	h.Mux.HandleFunc("/post/create", h.createPost)
-	h.Mux.HandleFunc("/post/delete/", h.deletePost)
-	h.Mux.HandleFunc("/post/change/", h.changePost)
-	h.Mux.HandleFunc("/post/like/", h.likePost)
-	h.Mux.HandleFunc("/post/dislike/", h.dislikePost)
+	mux.HandleFunc("/post/", h.post)
+	mux.HandleFunc("/post/create", h.createPost)
+	mux.HandleFunc("/post/delete/", h.deletePost)
+	mux.HandleFunc("/post/change/", h.changePost)
+	mux.HandleFunc("/post/like/", h.likePost)
+	mux.HandleFunc("/post/dislike/", h.dislikePost)
 
-	h.Mux.HandleFunc("/comment/delete/", h.deleteComment)
-	h.Mux.HandleFunc("/comment/change/", h.changeComment)
-	h.Mux.HandleFunc("/comment/like/", h.likeComment)
-	h.Mux.HandleFunc("/comment/dislike/", h.dislikeComment)
+	mux.HandleFunc("/comment/delete/", h.deleteComment)
+	mux.HandleFunc("/comment/change/", h.changeComment)
+	mux.HandleFunc("/comment/like/", h.likeComment)
+	mux.HandleFunc("/comment/dislike/", h.dislikeComment)
 
-	h.Mux.HandleFunc("/profile/", h.userProfilePage)
+	mux.HandleFunc("/profile/", h.userProfilePage)
 
 	fs := http.FileServer(http.Dir("./ui/static"))
-	h.Mux.Handle("/static/", http.StripPrefix("/static/", fs))
+	mux.Handle("/static/", http.StripPrefix("/static/", fs))
+
+	return mux
 }

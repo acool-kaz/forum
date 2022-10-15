@@ -6,10 +6,7 @@ import (
 	"fmt"
 	"forum/internal/service"
 	"forum/models"
-	"io"
-	"log"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 )
@@ -20,7 +17,7 @@ func (h *Handler) post(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		h.errorPage(w, http.StatusBadRequest, "post not found")
 	}
-	post, err := h.Services.GetPostById(id)
+	post, err := h.services.GetPostById(id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			h.errorPage(w, http.StatusNotFound, err.Error())
@@ -29,42 +26,39 @@ func (h *Handler) post(w http.ResponseWriter, r *http.Request) {
 		h.errorPage(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	var notifications []models.Notification
-	if user != (models.User{}) {
-		notifications, err = h.Services.GetAllNotificationForUser(user.Username)
-		if err != nil {
-			h.errorPage(w, http.StatusInternalServerError, err.Error())
-			return
-		}
+	notifications, err := h.services.GetAllNotificationForUser(user)
+	if err != nil {
+		h.errorPage(w, http.StatusInternalServerError, err.Error())
+		return
 	}
 	switch r.Method {
 	case http.MethodGet:
-		comments, err := h.Services.GetComments(post.Id)
+		comments, err := h.services.GetComments(post.Id)
 		if err != nil {
 			h.errorPage(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		similarPosts, err := h.Services.GetSimilarPosts(post.Id)
+		similarPosts, err := h.services.GetSimilarPosts(post.Id)
 		if err != nil {
 			h.errorPage(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		postLikes, err := h.Services.GetPostLikes(post.Id)
+		postLikes, err := h.services.GetPostLikes(post.Id)
 		if err != nil {
 			h.errorPage(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		postDisikes, err := h.Services.GetPostDislikes(post.Id)
+		postDisikes, err := h.services.GetPostDislikes(post.Id)
 		if err != nil {
 			h.errorPage(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		commentsLikes, err := h.Services.GetCommentLikes(post.Id)
+		commentsLikes, err := h.services.GetCommentLikes(post.Id)
 		if err != nil {
 			h.errorPage(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		commentsDislikes, err := h.Services.GetCommentDislikes(post.Id)
+		commentsDislikes, err := h.services.GetCommentDislikes(post.Id)
 		if err != nil {
 			h.errorPage(w, http.StatusInternalServerError, err.Error())
 			return
@@ -80,7 +74,7 @@ func (h *Handler) post(w http.ResponseWriter, r *http.Request) {
 			CommentsLikes:    commentsLikes,
 			CommentsDislikes: commentsDislikes,
 		}
-		if err := h.Tmpl.ExecuteTemplate(w, "post.html", info); err != nil {
+		if err := h.tmpl.ExecuteTemplate(w, "post.html", info); err != nil {
 			h.errorPage(w, http.StatusInternalServerError, err.Error())
 		}
 	case http.MethodPost:
@@ -102,7 +96,7 @@ func (h *Handler) post(w http.ResponseWriter, r *http.Request) {
 			Creater: user.Username,
 			Text:    comment[0],
 		}
-		if err := h.Services.Comment.CreateComment(newComment); err != nil {
+		if err := h.services.Comment.CreateComment(newComment); err != nil {
 			if errors.Is(err, service.ErrInvalidComment) {
 				h.errorPage(w, http.StatusBadRequest, err.Error())
 				return
@@ -117,7 +111,7 @@ func (h *Handler) post(w http.ResponseWriter, r *http.Request) {
 				Description: "commented your post",
 				PostId:      post.Id,
 			}
-			if err := h.Services.AddNewNotification(newNotify); err != nil {
+			if err := h.services.AddNewNotification(newNotify); err != nil {
 				h.errorPage(w, http.StatusInternalServerError, err.Error())
 				return
 			}
@@ -143,7 +137,7 @@ func (h *Handler) createPost(w http.ResponseWriter, r *http.Request) {
 		info := models.Info{
 			User: user,
 		}
-		if err := h.Tmpl.ExecuteTemplate(w, "createPost.html", info); err != nil {
+		if err := h.tmpl.ExecuteTemplate(w, "createPost.html", info); err != nil {
 			h.errorPage(w, http.StatusInternalServerError, err.Error())
 		}
 	case http.MethodPost:
@@ -166,49 +160,21 @@ func (h *Handler) createPost(w http.ResponseWriter, r *http.Request) {
 			h.errorPage(w, http.StatusBadRequest, "description field not found")
 			return
 		}
+		file := r.MultipartForm.File["image"]
 		post := models.Post{
 			Creater:     user.Username,
 			Category:    category,
 			Title:       title[0],
 			Description: description[0],
+			Files:       file,
 		}
-		postId, err := h.Services.CreatePost(post)
-		if err != nil {
+		if err := h.services.CreatePost(post); err != nil {
 			if errors.Is(err, service.ErrInvalidPost) {
 				h.errorPage(w, http.StatusBadRequest, err.Error())
 				return
 			}
 			h.errorPage(w, http.StatusInternalServerError, err.Error())
 			return
-		}
-		file, ok := r.MultipartForm.File["image"]
-		if ok {
-			if err := os.MkdirAll(fmt.Sprintf("./ui/static/img/%d", postId), os.ModePerm); err != nil {
-				log.Fatal(err)
-			}
-			for _, s := range file {
-				file, err := s.Open()
-				if err != nil {
-					h.errorPage(w, http.StatusBadRequest, err.Error())
-					return
-				}
-				defer file.Close()
-				out, err := os.Create(fmt.Sprintf("./ui/static/img/%d/%s", postId, s.Filename))
-				if err != nil {
-					h.errorPage(w, http.StatusInternalServerError, err.Error())
-					return
-				}
-				defer out.Close()
-				_, err = io.Copy(out, file)
-				if err != nil {
-					h.errorPage(w, http.StatusInternalServerError, err.Error())
-					return
-				}
-				if err := h.Services.SaveImageForPost(postId, fmt.Sprintf("/static/img/%d/%s", postId, s.Filename)); err != nil {
-					h.errorPage(w, http.StatusInternalServerError, err.Error())
-					return
-				}
-			}
 		}
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 	default:
@@ -231,16 +197,16 @@ func (h *Handler) deletePost(w http.ResponseWriter, r *http.Request) {
 		h.errorPage(w, http.StatusNotFound, err.Error())
 		return
 	}
-	post, err := h.Services.GetPostById(postId)
+	post, err := h.services.GetPostById(postId)
 	if err != nil {
 		h.errorPage(w, http.StatusNotFound, err.Error())
 		return
 	}
-	if user.Username != post.Creater {
-		h.errorPage(w, http.StatusBadRequest, "you cant delete this post")
-		return
-	}
-	if err := h.Services.DeletePost(post); err != nil {
+	if err := h.services.DeletePost(post, user); err != nil {
+		if errors.Is(err, service.ErrInavlidUser) {
+			h.errorPage(w, http.StatusBadRequest, err.Error())
+			return
+		}
 		h.errorPage(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -250,7 +216,7 @@ func (h *Handler) deletePost(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) changePost(w http.ResponseWriter, r *http.Request) {
 	user := h.userIdentity(w, r)
 	if user == (models.User{}) {
-		h.errorPage(w, http.StatusUnauthorized, "you cant change this post")
+		h.errorPage(w, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
 		return
 	}
 	if r.Method != http.MethodPost {
@@ -260,6 +226,11 @@ func (h *Handler) changePost(w http.ResponseWriter, r *http.Request) {
 	postId, err := strconv.Atoi(strings.TrimPrefix(r.URL.Path, "/post/change/"))
 	if err != nil {
 		h.errorPage(w, http.StatusNotFound, http.StatusText(http.StatusNotFound))
+		return
+	}
+	oldPost, err := h.services.Post.GetPostById(postId)
+	if err != nil {
+		h.errorPage(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 	if err := r.ParseForm(); err != nil {
@@ -286,7 +257,11 @@ func (h *Handler) changePost(w http.ResponseWriter, r *http.Request) {
 		Description: strings.Join(description, ""),
 		Category:    strings.Fields(strings.Join(category, " ")),
 	}
-	if err := h.Services.ChangePost(newPost, postId); err != nil {
+	if err := h.services.ChangePost(newPost, oldPost, user); err != nil {
+		if errors.Is(err, service.ErrInavlidUser) {
+			h.errorPage(w, http.StatusBadRequest, err.Error())
+			return
+		}
 		h.errorPage(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -296,7 +271,7 @@ func (h *Handler) changePost(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) likePost(w http.ResponseWriter, r *http.Request) {
 	user := h.userIdentity(w, r)
 	if user == (models.User{}) {
-		h.errorPage(w, http.StatusUnauthorized, "can not like post")
+		h.errorPage(w, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
 		return
 	}
 	id, err := strconv.Atoi(strings.TrimPrefix(r.URL.Path, "/post/like/"))
@@ -308,7 +283,7 @@ func (h *Handler) likePost(w http.ResponseWriter, r *http.Request) {
 		h.errorPage(w, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
 		return
 	}
-	post, err := h.Services.GetPostById(id)
+	post, err := h.services.GetPostById(id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			h.errorPage(w, http.StatusNotFound, err.Error())
@@ -317,7 +292,7 @@ func (h *Handler) likePost(w http.ResponseWriter, r *http.Request) {
 		h.errorPage(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	if err := h.Services.LikePost(id, user.Username); err != nil {
+	if err := h.services.LikePost(id, user.Username); err != nil {
 		h.errorPage(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -328,7 +303,7 @@ func (h *Handler) likePost(w http.ResponseWriter, r *http.Request) {
 			Description: "liked your post",
 			PostId:      post.Id,
 		}
-		if err := h.Services.AddNewNotification(newNotification); err != nil {
+		if err := h.services.AddNewNotification(newNotification); err != nil {
 			h.errorPage(w, http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -339,7 +314,7 @@ func (h *Handler) likePost(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) dislikePost(w http.ResponseWriter, r *http.Request) {
 	user := h.userIdentity(w, r)
 	if user == (models.User{}) {
-		h.errorPage(w, http.StatusUnauthorized, "can not dislike post")
+		h.errorPage(w, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
 		return
 	}
 	id, err := strconv.Atoi(strings.TrimPrefix(r.URL.Path, "/post/dislike/"))
@@ -351,7 +326,7 @@ func (h *Handler) dislikePost(w http.ResponseWriter, r *http.Request) {
 		h.errorPage(w, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
 		return
 	}
-	post, err := h.Services.GetPostById(id)
+	post, err := h.services.GetPostById(id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			h.errorPage(w, http.StatusNotFound, err.Error())
@@ -360,7 +335,7 @@ func (h *Handler) dislikePost(w http.ResponseWriter, r *http.Request) {
 		h.errorPage(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	if err := h.Services.DislikePost(id, user.Username); err != nil {
+	if err := h.services.DislikePost(id, user.Username); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			h.errorPage(w, http.StatusNotFound, err.Error())
 			return
@@ -375,7 +350,7 @@ func (h *Handler) dislikePost(w http.ResponseWriter, r *http.Request) {
 			Description: "disliked your post",
 			PostId:      post.Id,
 		}
-		if err := h.Services.AddNewNotification(newNotification); err != nil {
+		if err := h.services.AddNewNotification(newNotification); err != nil {
 			h.errorPage(w, http.StatusInternalServerError, err.Error())
 			return
 		}
