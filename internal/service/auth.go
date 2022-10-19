@@ -16,6 +16,8 @@ import (
 var (
 	ErrUserNotFound      = errors.New("user does not exist or password incorrect")
 	ErrInvalidUserName   = errors.New("invalid username")
+	ErrUsernameTaken     = errors.New("username is taken")
+	ErrEmailTaken        = errors.New("email is taken")
 	ErrInvalidEmail      = errors.New("invalid email")
 	ErrInvalidPassword   = errors.New("invalid password")
 	ErrPasswordDontMatch = errors.New("password didn't match")
@@ -39,11 +41,20 @@ func newAuthService(storage storage.Auth) *AuthService {
 }
 
 func (s *AuthService) CreateUser(user models.User) error {
-	var err error
+	tempUser, err := s.storage.GetUserByLogin(user.Username)
+	if err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("service: create user: %w", err)
+		}
+	} else {
+		return fmt.Errorf("serivce: create user: %w", ErrUsernameTaken)
+	}
+	if tempUser.Email == user.Email {
+		return fmt.Errorf("service: create user: %w", ErrEmailTaken)
+	}
 	if err := validUser(user); err != nil {
 		return fmt.Errorf("service: create user: %w", err)
 	}
-	// user.Username = strings.ToLower(user.Username)
 	user.Password, err = generateHashPassword(user.Password)
 	if err != nil {
 		return fmt.Errorf("service: create user: %w", err)

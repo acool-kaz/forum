@@ -54,7 +54,8 @@ func (h *Handler) signUp(w http.ResponseWriter, r *http.Request) {
 			if errors.Is(err, service.ErrInvalidUserName) ||
 				errors.Is(err, service.ErrPasswordDontMatch) ||
 				errors.Is(err, service.ErrInvalidEmail) ||
-				errors.Is(err, service.ErrInvalidPassword) {
+				errors.Is(err, service.ErrInvalidPassword) ||
+				errors.Is(err, service.ErrUsernameTaken) {
 				h.errorPage(w, http.StatusBadRequest, err.Error())
 				return
 			}
