@@ -1,43 +1,42 @@
 package delivery
 
 import (
-	"errors"
-	"forum/internal/service"
 	"forum/models"
 	"net/http"
 )
 
 func (h *Handler) homePage(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
-		h.errorPage(w, http.StatusNotFound, http.StatusText(http.StatusNotFound))
-		return
-	}
-	if r.Method != http.MethodGet {
-		h.errorPage(w, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
-		return
-	}
-	user := h.userIdentity(w, r)
 	var (
 		posts         []models.Post
 		notifications []models.Notification
 		err           error
 	)
+	if r.URL.Path != "/" {
+		h.errorPage(w, r, http.StatusNotFound, http.StatusText(http.StatusNotFound))
+		return
+	}
+	if r.Method != http.MethodGet {
+		h.errorPage(w, r, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
+		return
+	}
+	user := h.ctx.Value(uCtx).(models.User)
 	if len(r.URL.Query()) == 0 {
 		posts, err = h.services.GetAllPost()
 		if err != nil {
-			h.errorPage(w, http.StatusInternalServerError, err.Error())
+			h.errorPage(w, r, http.StatusInternalServerError, err.Error())
 			return
 		}
 	} else {
 		posts, err = h.services.GetAllPostBy(user, r.URL.Query())
 		if err != nil {
-			if errors.Is(err, service.ErrUserNotFound) {
-				h.errorPage(w, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
-				return
-			}
-			h.errorPage(w, http.StatusInternalServerError, err.Error())
+			h.errorPage(w, r, http.StatusInternalServerError, err.Error())
 			return
 		}
+	}
+	notifications, err = h.services.GetAllNotificationForUser(user)
+	if err != nil {
+		h.errorPage(w, r, http.StatusInternalServerError, err.Error())
+		return
 	}
 	info := models.Info{
 		Posts:         posts,
@@ -45,6 +44,6 @@ func (h *Handler) homePage(w http.ResponseWriter, r *http.Request) {
 		Notifications: notifications,
 	}
 	if err := h.tmpl.ExecuteTemplate(w, "index.html", info); err != nil {
-		h.errorPage(w, http.StatusInternalServerError, err.Error())
+		h.errorPage(w, r, http.StatusInternalServerError, err.Error())
 	}
 }

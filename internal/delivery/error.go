@@ -7,9 +7,9 @@ import (
 	"strings"
 )
 
-func (h *Handler) errorPage(w http.ResponseWriter, status int, msg string) {
+func (h *Handler) errorPage(w http.ResponseWriter, r *http.Request, status int, msg string) {
 	w.WriteHeader(status)
-	log.Printf("%d - %s", status, msg)
+	log.Printf("%s\t[%s]\t%s%s - %d - %s", r.Proto, r.Method, r.Host, r.URL, status, msg)
 	data := struct {
 		Status  int
 		Message string

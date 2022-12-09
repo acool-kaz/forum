@@ -1,1 +1,2 @@
-/ui/static/img
+/static/img
+*.db

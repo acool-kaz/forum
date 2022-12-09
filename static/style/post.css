@@ -386,6 +386,7 @@ header {
     padding: 5px 10px;
     border: 2px solid black;
     transition: all .1s linear;
+    word-wrap: anywhere;
 }
 
 .tag:hover {

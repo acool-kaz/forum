@@ -10,6 +10,7 @@ import (
 type Auth interface {
 	CreateUser(user models.User) error
 	GetUserByLogin(login string) (models.User, error)
+	GetUserByEmail(email string) (models.User, error)
 	SaveSessinToken(login, token string, expiresAt time.Time) error
 	GetUserByToken(token string) (models.User, error)
 	DeleteSessionToken(token string) error
@@ -41,6 +42,17 @@ func (s *AuthStorage) GetUserByLogin(username string) (models.User, error) {
 	err := row.Scan(&user.ID, &user.Email, &user.Username, &user.Password)
 	if err != nil {
 		return models.User{}, fmt.Errorf("storage: get user by login: %w", err)
+	}
+	return user, nil
+}
+
+func (s *AuthStorage) GetUserByEmail(email string) (models.User, error) {
+	query := `SELECT id, email, username, hashPassword FROM user WHERE email=$1;`
+	row := s.db.QueryRow(query, email)
+	var user models.User
+	err := row.Scan(&user.ID, &user.Email, &user.Username, &user.Password)
+	if err != nil {
+		return models.User{}, fmt.Errorf("storage: get user by email: %w", err)
 	}
 	return user, nil
 }

@@ -1,0 +1,12 @@
+{
+    "handler": {
+        "addr": "8080",
+        "write_timeout": 30,
+        "read_timeout": 30
+    },
+    "database": {
+        "db_name": "forum.db",
+        "migrations_up": "./migrations/up.sql",
+        "configs": "?_foreign_keys=on"
+    }
+}

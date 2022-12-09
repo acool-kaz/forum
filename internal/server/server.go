@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"forum/internal/config"
 	"net/http"
 	"time"
 )
@@ -11,14 +12,14 @@ type Server struct {
 	srv http.Server
 }
 
-func (s *Server) Start(port string, handlers http.Handler) error {
+func (s *Server) Start(cfg *config.Config, handlers http.Handler) error {
 	s.srv = http.Server{
-		Addr:         port,
+		Addr:         ":" + cfg.Handler.Addr,
 		Handler:      handlers,
-		WriteTimeout: time.Second * 3,
-		ReadTimeout:  time.Second * 3,
+		WriteTimeout: time.Second * time.Duration(cfg.Handler.WriteTimeout),
+		ReadTimeout:  time.Second * time.Duration(cfg.Handler.ReadTimeout),
 	}
-	fmt.Printf("Server starting http://localhost%s\n", port)
+	fmt.Printf("Server starting http://localhost:%s\n", cfg.Handler.Addr)
 	return s.srv.ListenAndServe()
 }
 

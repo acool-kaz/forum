@@ -13,15 +13,14 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var (
-	ErrUserNotFound      = errors.New("user does not exist or password incorrect")
-	ErrInvalidUserName   = errors.New("invalid username")
-	ErrUsernameTaken     = errors.New("username is taken")
-	ErrEmailTaken        = errors.New("email is taken")
-	ErrInvalidEmail      = errors.New("invalid email")
-	ErrInvalidPassword   = errors.New("invalid password")
-	ErrPasswordDontMatch = errors.New("password didn't match")
-)
+// ErrUserNotFound      = errors.New("user does not exist or password incorrect")
+// ErrInvalidUserName   = errors.New("invalid username")
+// ErrUsernameTaken     = errors.New("username is taken")
+// ErrEmailTaken        = errors.New("email is taken")
+// ErrInvalidEmail      = errors.New("invalid email")
+// ErrInvalidPassword   = errors.New("invalid password")
+// ErrPasswordDontMatch = errors.New("password didn't match")
+var ErrAuth = errors.New("auth error")
 
 type Auth interface {
 	CreateUser(user models.User) error
@@ -41,16 +40,21 @@ func newAuthService(storage storage.Auth) *AuthService {
 }
 
 func (s *AuthService) CreateUser(user models.User) error {
-	tempUser, err := s.storage.GetUserByLogin(user.Username)
+	_, err := s.storage.GetUserByLogin(user.Username)
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
 			return fmt.Errorf("service: create user: %w", err)
 		}
 	} else {
-		return fmt.Errorf("serivce: create user: %w", ErrUsernameTaken)
+		return fmt.Errorf("serivce: create user: %w: username is taken", ErrAuth)
 	}
-	if tempUser.Email == user.Email {
-		return fmt.Errorf("service: create user: %w", ErrEmailTaken)
+	_, err = s.storage.GetUserByEmail(user.Email)
+	if err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("service: create user: %w", err)
+		}
+	} else {
+		return fmt.Errorf("serivce: create user: %w: username is taken", ErrAuth)
 	}
 	if err := validUser(user); err != nil {
 		return fmt.Errorf("service: create user: %w", err)
@@ -66,12 +70,12 @@ func (s *AuthService) GenerateSessionToken(username, password string) (string, t
 	user, err := s.storage.GetUserByLogin(username)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return "", time.Time{}, fmt.Errorf("service: generate session token: %w", ErrUserNotFound)
+			return "", time.Time{}, fmt.Errorf("service: generate session token: %w: user not found", ErrAuth)
 		}
 		return "", time.Time{}, fmt.Errorf("service: generate session token: %w", err)
 	}
 	if err := compareHashAndPassword(user.Password, password); err != nil {
-		return "", time.Time{}, fmt.Errorf("service: generate session token: %w", err)
+		return "", time.Time{}, fmt.Errorf("service: generate session token: %w: user not found", err)
 	}
 	token := uuid.NewString()
 	expiresAt := time.Now().Add(time.Hour * 12)
@@ -104,7 +108,7 @@ func generateHashPassword(password string) (string, error) {
 
 func compareHashAndPassword(hash, password string) error {
 	if err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)); err != nil {
-		return ErrUserNotFound
+		return ErrAuth
 	}
 	return nil
 }
@@ -112,7 +116,7 @@ func compareHashAndPassword(hash, password string) error {
 func validUser(user models.User) error {
 	for _, char := range user.Username {
 		if char <= 32 || char >= 127 {
-			return ErrInvalidUserName
+			return fmt.Errorf("%w: invalid username", ErrAuth)
 		}
 	}
 	validEmail, err := regexp.MatchString(`[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$`, user.Email)
@@ -120,20 +124,20 @@ func validUser(user models.User) error {
 		return err
 	}
 	if !validEmail {
-		return ErrInvalidEmail
+		return fmt.Errorf("%w: invalid email", ErrAuth)
 	}
 	if len(user.Username) <= 4 || len(user.Username) >= 36 {
-		return ErrInvalidUserName
+		return fmt.Errorf("%w: invalid username", ErrAuth)
 	}
 	// validPassword, err := regexp.MatchString(`(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,254}`, user.Password)
 	// if err != nil {
 	// 	return err
 	// }
 	// if !validPassword {
-	// 	return ErrInvalidPassword
+	// 	return fmt.Errorf("%w: invalid password", ErrAuth)
 	// }
 	if user.Password != user.VerifyPassword {
-		return ErrPasswordDontMatch
+		return fmt.Errorf("%w: password dont match", ErrAuth)
 	}
 	return nil
 }
