@@ -57,7 +57,7 @@ func (h *Handler) authMiddleware(next http.HandlerFunc) http.HandlerFunc {
 
 func (h *Handler) loggingMiddleware(router http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("%s\t[%s]\t%s%s", r.Proto, r.Method, r.Host, r.URL.Path)
+		log.Printf("%s\t[%s]\t%s%s", r.Proto, r.Method, r.Host, r.RequestURI)
 		router.ServeHTTP(w, r)
 	}
 }

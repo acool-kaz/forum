@@ -13,13 +13,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// ErrUserNotFound      = errors.New("user does not exist or password incorrect")
-// ErrInvalidUserName   = errors.New("invalid username")
-// ErrUsernameTaken     = errors.New("username is taken")
-// ErrEmailTaken        = errors.New("email is taken")
-// ErrInvalidEmail      = errors.New("invalid email")
-// ErrInvalidPassword   = errors.New("invalid password")
-// ErrPasswordDontMatch = errors.New("password didn't match")
 var ErrAuth = errors.New("auth error")
 
 type Auth interface {

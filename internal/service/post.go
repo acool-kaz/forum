@@ -183,6 +183,10 @@ func (s *PostService) SaveImageForPost(postId int, files []*multipart.FileHeader
 			return fmt.Errorf("service: save image for post: %w", err)
 		}
 		defer file.Close()
+		imageSplit := strings.Split(fileHeader.Filename, ".")
+		if !validImageType(imageSplit[len(imageSplit)-1]) {
+			return fmt.Errorf("service: save image for post: %w: not supported file type", ErrInvalidPost)
+		}
 		out, err := os.Create(fmt.Sprintf("./ui/static/img/%d/%s", postId, fileHeader.Filename))
 		if err != nil {
 			return fmt.Errorf("service: save image for post: %w", err)
@@ -197,6 +201,16 @@ func (s *PostService) SaveImageForPost(postId int, files []*multipart.FileHeader
 		}
 	}
 	return nil
+}
+
+func validImageType(imageType string) bool {
+	validImageType := []string{"jpeg", "jpg", "png", "gif"}
+	for _, t := range validImageType {
+		if t == imageType {
+			return true
+		}
+	}
+	return false
 }
 
 func isInvalidPost(post models.Post) bool {
