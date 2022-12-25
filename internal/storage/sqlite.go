@@ -8,21 +8,21 @@ import (
 )
 
 func InitDB(cfg *config.Config) (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", "forum.db?_foreign_keys=on")
+	db, err := sql.Open("sqlite3", cfg.Database.DBName+cfg.Database.FKeysConstraint)
 	if err != nil {
 		return nil, fmt.Errorf("storage: init db: %w", err)
 	}
 	if err = db.Ping(); err != nil {
 		return nil, fmt.Errorf("storage: init db: %w", err)
 	}
-	if err = createTables(cfg, db); err != nil {
+	if err = createTables(cfg.Database.MigrationsUp, db); err != nil {
 		return nil, fmt.Errorf("storage: init db: %w", err)
 	}
 	return db, nil
 }
 
-func createTables(cfg *config.Config, db *sql.DB) error {
-	migrationData, err := os.ReadFile(cfg.Database.MigrationsUp)
+func createTables(mifrationFile string, db *sql.DB) error {
+	migrationData, err := os.ReadFile(mifrationFile)
 	if err != nil {
 		return fmt.Errorf("create tables: read file: %w", err)
 	}

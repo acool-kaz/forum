@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"fmt"
 	"forum/internal/config"
 	"net/http"
 	"time"
@@ -19,7 +18,6 @@ func (s *Server) Start(cfg *config.Config, handlers http.Handler) error {
 		WriteTimeout: time.Second * time.Duration(cfg.Handler.WriteTimeout),
 		ReadTimeout:  time.Second * time.Duration(cfg.Handler.ReadTimeout),
 	}
-	fmt.Printf("Server starting http://localhost:%s\n", cfg.Handler.Addr)
 	return s.srv.ListenAndServe()
 }
 

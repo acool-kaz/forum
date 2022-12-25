@@ -13,9 +13,9 @@ type Config struct {
 		ReadTimeout  int    `json:"read_timeout"`
 	} `json:"handler"`
 	Database struct {
-		DBName       string `json:"db_name"`
-		MigrationsUp string `json:"migrations_up"`
-		Configs      string `json:"configs"`
+		DBName          string `json:"db_name"`
+		MigrationsUp    string `json:"migrations_up"`
+		FKeysConstraint string `json:"f_keys_constraint"`
 	} `json:"database"`
 }
 

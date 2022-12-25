@@ -2,8 +2,7 @@ package delivery
 
 import (
 	"context"
-	"forum/models"
-	"log"
+	"fmt"
 	"net/http"
 	"time"
 )
@@ -27,37 +26,35 @@ func (m *middleware) use(router http.HandlerFunc) http.HandlerFunc {
 
 type userCtx string
 
-const uCtx userCtx = "userCtx"
+const userId userCtx = "user_id"
 
 func (h *Handler) authMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		c, err := r.Cookie("session_token")
-		h.ctx = context.WithValue(h.ctx, uCtx, models.User{})
 		if err != nil {
-			next.ServeHTTP(w, r)
+			next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), userId, uint(0))))
 			return
 		}
-		user, err := h.services.ParseSessionToken(c.Value)
+		session, err := h.services.ParseSessionToken(r.Context(), c.Value)
 		if err != nil {
-			next.ServeHTTP(w, r)
+			next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), userId, uint(0))))
 			return
 		}
-		if user.ExpiresAt.Before(time.Now()) {
-			if err := h.services.DeleteSessionToken(c.Value); err != nil {
+		if session.ExpiresAt.Before(time.Now()) {
+			if err := h.services.DeleteSessionToken(r.Context(), c.Value); err != nil {
 				h.errorPage(w, r, http.StatusInternalServerError, err.Error())
 				return
 			}
-			next.ServeHTTP(w, r)
+			next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), userId, uint(0))))
 			return
 		}
-		h.ctx = context.WithValue(h.ctx, uCtx, user)
-		next.ServeHTTP(w, r)
+		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), userId, session.UserId)))
 	}
 }
 
 func (h *Handler) loggingMiddleware(router http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("%s\t[%s]\t%s%s", r.Proto, r.Method, r.Host, r.RequestURI)
+		fmt.Printf("\n%s %s [%s]\t%s%s - 200 - OK", time.Now().Format("2006/01/02 15:04:05"), r.Proto, r.Method, r.Host, r.RequestURI)
 		router.ServeHTTP(w, r)
 	}
 }

@@ -3,9 +3,9 @@ package models
 type Info struct {
 	User             User
 	ProfileUser      User
-	Posts            []Post
+	Posts            []FullPost
 	SimilarPosts     []Post
-	Post             Post
+	Post             FullPost
 	Notifications    []Notification
 	PostLikes        []string
 	PostDislikes     []string

@@ -1,61 +1,55 @@
-CREATE TABLE IF NOT EXISTS user (
+CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    email TEXT UNIQUE,
-    username TEXT UNIQUE,
-    hashPassword TEXT,
-    posts INT DEFAULT 0,
-    likes INT DEFAULT 0,
-    dislikes INT DEFAULT 0,
-    comments INT DEFAULT 0,
-    session_token TEXT DEFAULT NULL,
-    expiresAt DATETIME DEFAULT NULL
+    username TEXT,
+    email TEXT,
+    password TEXT
 );
 
-CREATE TABLE IF NOT EXISTS post (
+CREATE TABLE IF NOT EXISTS sessions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+	user_id INTEGER,
+    token TEXT,
+    expires_at DATETIME,
+	FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS posts (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	creater TEXT,
+	user_id INTEGER,
 	title TEXT,
 	description TEXT,
 	created_at DATE DEFAULT (datetime('now','localtime')),
-	likes INT DEFAULT 0,
-	dislikes INT DEFAULT 0,
-	comments INT DEFAULT 0,
-	FOREIGN KEY (creater) REFERENCES user(username)
+	FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
-CREATE TABLE IF NOT EXISTS post_category (
-	postId INTEGER,
-	category TEXT,
-	FOREIGN KEY (postId) REFERENCES post(id) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS comment (
+CREATE TABLE IF NOT EXISTS tags (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	postId INTEGER,
-	creater TEXT,
+	post_id INTEGER,
+	name TEXT,
+	FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS comments (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	post_id INTEGER,
+	user_id INTEGER,
 	text TEXT,
-	likes INT DEFAULT 0,
-	dislikes INT DEFAULT 0,
-	FOREIGN KEY (postId) REFERENCES post(id) ON DELETE CASCADE
+	FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+	FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
-CREATE TABLE IF NOT EXISTS likes (
-	username TEXT,
-	postId INTEGER DEFAULT NULL,
-	commentId INTEGER DEFAULT NULL,
-	FOREIGN KEY (postId) REFERENCES post(id) ON DELETE CASCADE,
-	FOREIGN KEY (commentId) REFERENCES comment(id) ON DELETE CASCADE
+CREATE TABLE IF NOT EXISTS reactions (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	post_id INTEGER,
+	comment_id INTEGER,
+	user_id INTEGER,
+	reaction INTEGER,
+	FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+	FOREIGN KEY (comment_id) REFERENCES comments(id) ON DELETE CASCADE,
+	FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
-CREATE TABLE IF NOT EXISTS dislikes (
-	username TEXT,
-	postId INTEGER DEFAULT NULL,
-	commentId INTEGER DEFAULT NULL,
-	FOREIGN KEY (postId) REFERENCES post(id) ON DELETE CASCADE,
-	FOREIGN KEY (commentId) REFERENCES comment(id) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS notification (
+CREATE TABLE IF NOT EXISTS notifications (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	fromUser TEXT,
 	toUser TEXT,

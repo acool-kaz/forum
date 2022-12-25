@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"forum/internal/config"
 	"forum/internal/delivery"
 	"forum/internal/server"
@@ -39,12 +40,14 @@ func Run(cfg *config.Config) {
 			return
 		}
 	}()
+	log.Printf("Server starting http://localhost:%s", cfg.Handler.Addr)
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
 	<-quit
+	fmt.Println()
 
-	ctx, cancel := context.WithTimeout(context.TODO(), 3*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
 	defer cancel()
 	if err = server.Shutdown(ctx); err != nil {
 		log.Println(err)

@@ -2,14 +2,15 @@ package delivery
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
+	"time"
 )
 
 func (h *Handler) errorPage(w http.ResponseWriter, r *http.Request, status int, msg string) {
 	w.WriteHeader(status)
-	log.Printf("%s\t[%s]\t%s%s - %d - %s", r.Proto, r.Method, r.Host, r.URL, status, msg)
+	fmt.Printf("\r%s %s [%s]\t%s%s - %d - %s\n", time.Now().Format("2006/01/02 15:04:05"), r.Proto, r.Method, r.Host, r.RequestURI, status, http.StatusText(status))
+	fmt.Print(msg)
 	data := struct {
 		Status  int
 		Message string

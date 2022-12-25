@@ -61,7 +61,7 @@
                 <div class="post">
                     <fieldset>
                         <legend align="right">
-                            <h3><a href="/profile/{{ .Creater }}?posts=created">{{ .Creater }}</a></h3>
+                            <h3><a href="/profile/{{ .Username }}?posts=created">{{ .Username }}</a></h3>
                         </legend>
                         <div class="post-title">
                             <h3><a href="/post/{{ .Id }}">{{ .Title }}</a></h3>
@@ -70,7 +70,7 @@
                             {{ .Description }}
                         </div>
                         <div class="post-footer">
-                            {{ range .Category }}
+                            {{ range .Tags }}
                             <a href="/?category={{ . }}" class="tag">{{ . }}</a>
                             {{ end }}
                         </div>

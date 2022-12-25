@@ -1,17 +1,9 @@
 package models
 
-import "time"
-
 type User struct {
-	ID              int
-	Email           string
-	Username        string
-	Password        string
-	VerifyPassword  string
-	CountOfPosts    int
-	CountOfLikes    int
-	CountOfDislikes int
-	CountOfComments int
-	Token           string
-	ExpiresAt       time.Time
+	Id             uint   `json:"id"`
+	Username       string `json:"username"`
+	Email          string `json:"email"`
+	Password       string `json:"password"`
+	VerifyPassword string `json:"verify_password"`
 }

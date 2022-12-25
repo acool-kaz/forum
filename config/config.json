@@ -7,6 +7,6 @@
     "database": {
         "db_name": "forum.db",
         "migrations_up": "./migrations/up.sql",
-        "configs": "?_foreign_keys=on"
+        "f_keys_constraint": "?_foreign_keys=on"
     }
 }

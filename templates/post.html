@@ -55,7 +55,7 @@
                 <div class="post">
                     <div class="post-body">
                         <div class="post-creater">
-                            <h1><a href="/profile/{{ .Post.Creater }}?posts=created">{{ .Post.Creater }}</a></h1>
+                            <h1><a href="/profile/{{ .Post.Username }}?posts=created">{{ .Post.Username }}</a></h1>
                         </div>
                         <div class="post-title">
                             <h1>{{ .Post.Title }}</h1>
@@ -102,7 +102,7 @@
                             </div>
                         </div>
                         <div class="tags">
-                            {{ range $tag := .Post.Category }}
+                            {{ range $tag := .Post.Tags }}
                             <a href="/?category={{ $tag }}" class="tag">{{ $tag }}</a>
                             {{ end }}
                         </div>
@@ -114,7 +114,7 @@
                             <h3>Empty</h3>
                             {{ end }}
                         </div>
-                        {{ if eq .User.Username .Post.Creater }}
+                        {{ if eq .User.Username .Post.Username }}
                         <h2>Post Modification</h2>
                         <div class="post-modify">
                             <form action="/post/delete/{{ .Post.Id }}" method="post">
@@ -141,8 +141,8 @@
                                                 <textarea name="description" required>{{ .Post.Description }}</textarea>
                                             </fieldset>
                                             <fieldset>
-                                                <legend>Category</legend>
-                                                <input type="text" name="category" value="{{ range .Post.Category }}{{ . }} {{ end }}" required>
+                                                <legend>Tags</legend>
+                                                <input type="text" name="tags" value="{{ range .Post.Tags }}{{ . }} {{ end }}" required>
                                             </fieldset>
                                             <div class="shown-categories"></div>
                                             <button class="btn">Change</button>
@@ -216,7 +216,7 @@
                     <form action="/post/{{ .Post.Id }}" method="post" class="send-comment">
                         <fieldset>
                             <legend>Your Comment</legend>
-                            <textarea id="Comment" name="comment" required></textarea>
+                            <textarea id="Comment" name="text" required></textarea>
                         </fieldset>
                         <button>Send</button>
                     </form>
@@ -273,7 +273,7 @@
         }
         const category = document.querySelector('.shown-categories')
         const outputCategory = document.querySelector('.category')
-        const t = '{{ .Post.Category }}'
+        const t = '{{ .Post.Tags }}'
         var usedTags = t.slice(1, t.length - 1).split(' ')
         usedTags.forEach(element => {
             outputCategory.value += element + " "

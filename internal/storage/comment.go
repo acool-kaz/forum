@@ -1,18 +1,11 @@
 package storage
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"forum/models"
 )
-
-type Comment interface {
-	GetComments(postId int) ([]models.Comment, error)
-	GetCommentById(commentId int) (models.Comment, error)
-	CreateComment(comment models.Comment) error
-	DeleteComment(comment models.Comment) error
-	ChangeComment(comment models.Comment) error
-}
 
 type CommentStorage struct {
 	db *sql.DB
@@ -24,77 +17,56 @@ func newCommentStorage(db *sql.DB) *CommentStorage {
 	}
 }
 
-func (s *CommentStorage) GetComments(postId int) ([]models.Comment, error) {
-	var commnets []models.Comment
-	query := `SELECT * FROM comment WHERE postId=$1;`
-	rows, err := s.db.Query(query, postId)
+func (s *CommentStorage) Create(ctx context.Context, comment models.Comment) error {
+	query := fmt.Sprintf("INSERT INTO %s(post_id, user_id, text) VALUES($1, $2, $3);", commentTable)
+	prep, err := s.db.PrepareContext(ctx, query)
 	if err != nil {
-		return nil, fmt.Errorf("storage: get comments: %w", err)
+		return fmt.Errorf("comment storage: create: %w", err)
 	}
+	defer prep.Close()
+
+	if _, err = prep.ExecContext(ctx, comment.PostId, comment.UserId, comment.Text); err != nil {
+		return fmt.Errorf("comment storage: create: %w", err)
+	}
+
+	return nil
+}
+
+func (s *CommentStorage) GetAll(ctx context.Context, postId uint) ([]models.FullComment, error) {
+	query := fmt.Sprintf(`
+	SELECT 
+		u.username,
+		c.text,
+		count(SELECT * FROM %s WHERE comment_id = c.id and reaction=1),
+		count(SELECT * FROM %s WHERE comment_id = c.id and reaction=-1),
+	FROM %s c
+	INNER JOIN %s u ON u.id = c.user_id
+	WHERE c.id = $1
+	GROUP BY c.id;
+	`, reactionTable, reactionTable, commentTable, userTable)
+	prep, err := s.db.PrepareContext(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("comment storage: get all: %w", err)
+	}
+	defer prep.Close()
+
+	var (
+		allComments []models.FullComment
+		oneComment  models.FullComment
+	)
+
+	rows, err := prep.QueryContext(ctx, postId)
+	if err != nil {
+		return nil, fmt.Errorf("comment storage: get all: %w", err)
+	}
+	defer rows.Close()
+
 	for rows.Next() {
-		var comment models.Comment
-		if err := rows.Scan(&comment.Id, &comment.PostId, &comment.Creater, &comment.Text, &comment.Likes, &comment.Dislikes); err != nil {
-			return nil, fmt.Errorf("storage: get comments: %w", err)
+		if err = rows.Scan(&oneComment.Username, &oneComment.Text, &oneComment.Likes, &oneComment.Dislikes); err != nil {
+			return nil, fmt.Errorf("comment storage: get all: %w", err)
 		}
-		commnets = append(commnets, comment)
+		allComments = append(allComments, oneComment)
 	}
-	return commnets, nil
-}
 
-func (s *CommentStorage) GetCommentById(commentId int) (models.Comment, error) {
-	var comment models.Comment
-	query := `SELECT id, creater, postId FROM comment WHERE id = $1;`
-	row := s.db.QueryRow(query, commentId)
-	err := row.Scan(&comment.Id, &comment.Creater, &comment.PostId)
-	if err != nil {
-		return models.Comment{}, fmt.Errorf("storage: get comment by id: %w", err)
-	}
-	return comment, nil
-}
-
-func (s *CommentStorage) CreateComment(comment models.Comment) error {
-	query := `INSERT INTO comment(postId, creater, text) VALUES ($1, $2, $3);`
-	_, err := s.db.Exec(query, comment.PostId, comment.Creater, comment.Text)
-	if err != nil {
-		return fmt.Errorf("storage: create comment: %w", err)
-	}
-	query = `UPDATE user SET comments = comments + 1 WHERE username = (SELECT creater FROM post WHERE id = $1);`
-	_, err = s.db.Exec(query, comment.PostId)
-	if err != nil {
-		return fmt.Errorf("storage: create comment: %w", err)
-	}
-	query = `UPDATE post SET comments = comments + 1 WHERE id = $1;`
-	_, err = s.db.Exec(query, comment.PostId)
-	if err != nil {
-		return fmt.Errorf("storage: create comment: %w", err)
-	}
-	return nil
-}
-
-func (s *CommentStorage) DeleteComment(comment models.Comment) error {
-	query := `DELETE FROM comment WHERE id = $1;`
-	_, err := s.db.Exec(query, comment.Id)
-	if err != nil {
-		return fmt.Errorf("storage: delete comment: %w", err)
-	}
-	query = `UPDATE user SET comments = comments - 1 WHERE username = (SELECT creater FROM post WHERE id = $1);`
-	_, err = s.db.Exec(query, comment.PostId)
-	if err != nil {
-		return fmt.Errorf("storage: delete comment: %w", err)
-	}
-	query = `UPDATE post SET comments = comments - 1 WHERE id = $1`
-	_, err = s.db.Exec(query, comment.PostId)
-	if err != nil {
-		return fmt.Errorf("storage: delete comment: %w", err)
-	}
-	return nil
-}
-
-func (s *CommentStorage) ChangeComment(comment models.Comment) error {
-	query := `UPDATE comment SET text = $1 WHERE id = $2;`
-	_, err := s.db.Exec(query, comment.Text, comment.Id)
-	if err != nil {
-		return fmt.Errorf("storage: delete comment: %w", err)
-	}
-	return nil
+	return allComments, nil
 }

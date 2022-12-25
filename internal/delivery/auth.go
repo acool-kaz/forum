@@ -2,15 +2,14 @@ package delivery
 
 import (
 	"errors"
-	"forum/internal/service"
 	"forum/models"
 	"net/http"
 	"time"
 )
 
 func (h *Handler) signUp(w http.ResponseWriter, r *http.Request) {
-	user := h.ctx.Value(uCtx).(models.User)
-	if user != (models.User{}) {
+	user := r.Context().Value(userId).(uint)
+	if user != 0 {
 		h.errorPage(w, r, http.StatusBadRequest, "you already in")
 		return
 	}
@@ -25,7 +24,8 @@ func (h *Handler) signUp(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	case http.MethodPost:
-		if err := r.ParseForm(); err != nil {
+		err := r.ParseForm()
+		if err != nil {
 			h.errorPage(w, r, http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -55,17 +55,19 @@ func (h *Handler) signUp(w http.ResponseWriter, r *http.Request) {
 			Password:       password[0],
 			VerifyPassword: verifyPassword[0],
 		}
-		if err := h.services.Auth.CreateUser(user); err != nil {
-			if errors.Is(err, service.ErrAuth) {
+		_, err = h.services.User.Create(r.Context(), user)
+		if err != nil {
+			if errors.Is(err, models.ErrInvalidUser) {
 				h.errorPage(w, r, http.StatusBadRequest, err.Error())
 				return
 			}
 			h.errorPage(w, r, http.StatusInternalServerError, err.Error())
 			return
 		}
-		sessionToken, expiresAt, err := h.services.Auth.GenerateSessionToken(username[0], password[0])
+		var session models.Session
+		session, err = h.services.Session.GenerateSessionToken(r.Context(), user.Username, user.Password)
 		if err != nil {
-			if errors.Is(err, service.ErrAuth) {
+			if errors.Is(err, models.ErrUserNotFound) {
 				h.errorPage(w, r, http.StatusBadRequest, err.Error())
 				return
 			}
@@ -74,8 +76,8 @@ func (h *Handler) signUp(w http.ResponseWriter, r *http.Request) {
 		}
 		http.SetCookie(w, &http.Cookie{
 			Name:    "session_token",
-			Value:   sessionToken,
-			Expires: expiresAt,
+			Value:   session.Token,
+			Expires: session.ExpiresAt,
 			Path:    "/",
 		})
 		http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -83,8 +85,8 @@ func (h *Handler) signUp(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) signIn(w http.ResponseWriter, r *http.Request) {
-	user := h.ctx.Value(uCtx).(models.User)
-	if user != (models.User{}) {
+	user := r.Context().Value(userId).(uint)
+	if user != 0 {
 		h.errorPage(w, r, http.StatusBadRequest, "you already in")
 		return
 	}
@@ -99,7 +101,8 @@ func (h *Handler) signIn(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	case http.MethodPost:
-		if err := r.ParseForm(); err != nil {
+		err := r.ParseForm()
+		if err != nil {
 			h.errorPage(w, r, http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -113,9 +116,10 @@ func (h *Handler) signIn(w http.ResponseWriter, r *http.Request) {
 			h.errorPage(w, r, http.StatusBadRequest, "password field not found")
 			return
 		}
-		sessionToken, expiresAt, err := h.services.Auth.GenerateSessionToken(username[0], password[0])
+		var session models.Session
+		session, err = h.services.Session.GenerateSessionToken(r.Context(), username[0], password[0])
 		if err != nil {
-			if errors.Is(err, service.ErrAuth) {
+			if errors.Is(err, models.ErrUserNotFound) {
 				h.errorPage(w, r, http.StatusBadRequest, err.Error())
 				return
 			}
@@ -124,8 +128,8 @@ func (h *Handler) signIn(w http.ResponseWriter, r *http.Request) {
 		}
 		http.SetCookie(w, &http.Cookie{
 			Name:    "session_token",
-			Value:   sessionToken,
-			Expires: expiresAt,
+			Value:   session.Token,
+			Expires: session.ExpiresAt,
 			Path:    "/",
 		})
 		http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -135,19 +139,20 @@ func (h *Handler) signIn(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) logOut(w http.ResponseWriter, r *http.Request) {
-	user := h.ctx.Value(uCtx).(models.User)
-	if user == (models.User{}) {
+	user := r.Context().Value(userId).(uint)
+	if user == 0 {
 		h.errorPage(w, r, http.StatusBadRequest, "cant log-out, without log-in")
-		return
-	}
-	if r.URL.Path != "/auth/logout" {
-		h.errorPage(w, r, http.StatusNotFound, http.StatusText(http.StatusNotFound))
 		return
 	}
 	if r.Method != http.MethodGet {
 		h.errorPage(w, r, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
 		return
 	}
+	if r.URL.Path != "/auth/logout" {
+		h.errorPage(w, r, http.StatusNotFound, http.StatusText(http.StatusNotFound))
+		return
+	}
+
 	c, err := r.Cookie("session_token")
 	if err != nil {
 		if err == http.ErrNoCookie {
@@ -158,7 +163,7 @@ func (h *Handler) logOut(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.services.DeleteSessionToken(c.Value); err != nil {
+	if err = h.services.DeleteSessionToken(r.Context(), c.Value); err != nil {
 		h.errorPage(w, r, http.StatusInternalServerError, err.Error())
 		return
 	}
