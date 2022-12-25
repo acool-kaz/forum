@@ -112,22 +112,25 @@ func (h *Handler) post(w http.ResponseWriter, r *http.Request) {
 			h.errorPage(w, r, http.StatusInternalServerError, err.Error())
 		}
 	case http.MethodPost:
-		// err := r.ParseForm()
-		// if err != nil {
-		// 	h.errorPage(w, r, http.StatusInternalServerError, err.Error())
-		// 	return
-		// }
-		// text, ok := r.Form["text"]
-		// if !ok {
-		// 	h.errorPage(w, r, http.StatusBadRequest, "comment field not found")
-		// 	return
-		// }
-		// comment := models.Comment{
-		// 	PostId: post.Id,
-		// 	UserId: userId,
-		// 	Text:   text[0],
-		// }
-
+		err := r.ParseForm()
+		if err != nil {
+			h.errorPage(w, r, http.StatusInternalServerError, err.Error())
+			return
+		}
+		text, ok := r.Form["text"]
+		if !ok {
+			h.errorPage(w, r, http.StatusBadRequest, "comment field not found")
+			return
+		}
+		comment := models.Comment{
+			PostId: post.Id,
+			UserId: userId,
+			Text:   text[0],
+		}
+		if err = h.services.Comment.Create(r.Context(), comment); err != nil {
+			h.errorPage(w, r, http.StatusInternalServerError, err.Error())
+			return
+		}
 		http.Redirect(w, r, r.URL.Path, http.StatusSeeOther)
 	default:
 		h.errorPage(w, r, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))

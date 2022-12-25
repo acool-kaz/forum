@@ -35,13 +35,14 @@ func (s *CommentStorage) Create(ctx context.Context, comment models.Comment) err
 func (s *CommentStorage) GetAll(ctx context.Context, postId uint) ([]models.FullComment, error) {
 	query := fmt.Sprintf(`
 	SELECT 
+		c.id,
 		u.username,
 		c.text,
-		count(SELECT * FROM %s WHERE comment_id = c.id and reaction=1),
-		count(SELECT * FROM %s WHERE comment_id = c.id and reaction=-1),
+		(SELECT COUNT(*) FROM %s r WHERE r.comment_id = c.id AND reaction=1) AS 'likes',
+    	(SELECT COUNT(*) FROM %s r WHERE r.comment_id = c.id AND reaction=-1) AS 'dislikes'
 	FROM %s c
 	INNER JOIN %s u ON u.id = c.user_id
-	WHERE c.id = $1
+	WHERE c.post_id = $1
 	GROUP BY c.id;
 	`, reactionTable, reactionTable, commentTable, userTable)
 	prep, err := s.db.PrepareContext(ctx, query)
@@ -62,7 +63,7 @@ func (s *CommentStorage) GetAll(ctx context.Context, postId uint) ([]models.Full
 	defer rows.Close()
 
 	for rows.Next() {
-		if err = rows.Scan(&oneComment.Username, &oneComment.Text, &oneComment.Likes, &oneComment.Dislikes); err != nil {
+		if err = rows.Scan(&oneComment.Id, &oneComment.Username, &oneComment.Text, &oneComment.Likes, &oneComment.Dislikes); err != nil {
 			return nil, fmt.Errorf("comment storage: get all: %w", err)
 		}
 		allComments = append(allComments, oneComment)

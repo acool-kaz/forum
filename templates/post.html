@@ -158,9 +158,9 @@
                 {{ $user := .User.Username }}
                 <div class="comments">
                     <div class="all-comments">
-                        {{ range .Comments }}
+                        {{ range .Post.Comments }}
                         <div class="one-comment">
-                            <h3>{{ .Creater }}</h3>
+                            <h3>{{ .Username }}</h3>
                             <p>{{ .Text }}</p>
                             <div class="comment-info">
                                 <div class="comment-reaction">
@@ -177,7 +177,7 @@
                                         </button>
                                     </form>
                                 </div>
-                                {{ if eq .Creater $user }}
+                                {{ if eq .Username $user }}
                                 <div class="comment-modification">
                                     <form action="/comment/delete/{{ .Id }}" method="post">
                                         <button class="btn comment"><i class="bi bi-trash"></i></button>

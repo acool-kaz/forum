@@ -85,6 +85,8 @@ func (s *PostStorage) GetById(ctx context.Context, id uint) (models.FullPost, er
 		p.title,
 		GROUP_CONCAT(t.name, ' '),
 		p.description,
+		(SELECT COUNT(*) FROM reactions r WHERE r.post_id = p.id AND reaction=1) AS 'likes',
+    	(SELECT COUNT(*) FROM reactions r WHERE r.post_id = p.id AND reaction=-1) AS 'dislikes',
 		p.created_at
 	FROM %s p 
 	INNER JOIN %s u ON u.id = p.user_id
@@ -103,7 +105,7 @@ func (s *PostStorage) GetById(ctx context.Context, id uint) (models.FullPost, er
 		tags    string
 	)
 
-	if err = prep.QueryRowContext(ctx, id).Scan(&onePost.Id, &onePost.Username, &onePost.Title, &tags, &onePost.Description, &onePost.CreatedAt); err != nil {
+	if err = prep.QueryRowContext(ctx, id).Scan(&onePost.Id, &onePost.Username, &onePost.Title, &tags, &onePost.Description, &onePost.Likes, &onePost.Dislikes, &onePost.CreatedAt); err != nil {
 		return models.FullPost{}, fmt.Errorf("post storage: get all: %w", err)
 	}
 	onePost.Tags = strings.Split(tags, " ")

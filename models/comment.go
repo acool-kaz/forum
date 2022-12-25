@@ -8,6 +8,7 @@ type Comment struct {
 }
 
 type FullComment struct {
+	Id       uint   `json:"id"`
 	Username string `json:"username"`
 	Text     string `json:"text"`
 	Likes    uint   `json:"likes"`
