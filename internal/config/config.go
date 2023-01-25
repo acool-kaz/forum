@@ -7,11 +7,14 @@ import (
 )
 
 type Config struct {
-	Handler struct {
-		Addr         string `json:"addr"`
+	App struct {
+		FileServer string `json:"file_server"`
+	}
+	Http struct {
+		Port         string `json:"addr"`
 		WriteTimeout int    `json:"write_timeout"`
 		ReadTimeout  int    `json:"read_timeout"`
-	} `json:"handler"`
+	} `json:"http"`
 	Database struct {
 		DBName          string `json:"db_name"`
 		MigrationsUp    string `json:"migrations_up"`

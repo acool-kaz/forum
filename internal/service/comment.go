@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 	"fmt"
+	"forum/internal/models"
 	"forum/internal/storage"
-	"forum/models"
 )
 
 type CommentService struct {

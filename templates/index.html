@@ -25,12 +25,14 @@
                     <button onclick="showModal('notification')" class="notify"><i class="bi bi-bell"></i></button>
                     <div id="notification" class="modal" onclick="closeModal('notification');">
                         <div class="modal-content">
-                            <div class="modal-header">Notifications<span class='close' onclick='closeModal("notification")'></span></div>
+                            <div class="modal-header">Notifications<span class='close'
+                                    onclick='closeModal("notification")'></span></div>
                             <div class="modal-body">
                                 {{ range .Notifications }}
-                                    <span><a href="/profile/{{ .From }}?posts=created">{{ .From }}</a> {{ .Description }} <a href="/post/{{ .PostId }}">{{ .PostId }}</a></span>
+                                <span><a href="/profile/{{ .From }}?posts=created">{{ .From }}</a> {{ .Description }} <a
+                                        href="/post/{{ .PostId }}">{{ .PostId }}</a></span>
                                 {{ else }}
-                                    <span>No notifications for you</span>
+                                <span>No notifications for you</span>
                                 {{ end }}
                             </div>
                         </div>
@@ -70,10 +72,14 @@
                             {{ .Description }}
                         </div>
                         <div class="post-footer">
-                            {{ range .Tags }}
-                            <a href="/?category={{ . }}" class="tag">{{ . }}</a>
-                            {{ end }}
+                            <div class="tags">
+                                {{ range .Tags }}
+                                <a href="/?category={{ . }}" class="tag">{{ . }}</a>
+                                {{ end }}
+                            </div>
+                            <a href="/post/{{ .Id }}" class="tag">More</a>
                         </div>
+                        {{ .CreatedAt }}
                     </fieldset>
                 </div>
                 {{ end }}

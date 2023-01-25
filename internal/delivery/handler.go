@@ -34,13 +34,12 @@ func (h *Handler) InitRoutes() *http.ServeMux {
 	mux.HandleFunc("/post/create", m.use(h.createPost))
 	// mux.HandleFunc("/post/delete/", m.use(h.deletePost))
 	// mux.HandleFunc("/post/change/", m.use(h.changePost))
-	// mux.HandleFunc("/post/like/", m.use(h.likePost))
-	// mux.HandleFunc("/post/dislike/", m.use(h.dislikePost))
 
 	// mux.HandleFunc("/comment/delete/", m.use(h.deleteComment))
 	// mux.HandleFunc("/comment/change/", m.use(h.changeComment))
-	// mux.HandleFunc("/comment/like/", m.use(h.likeComment))
-	// mux.HandleFunc("/comment/dislike/", m.use(h.dislikeComment))
+
+	mux.HandleFunc("/like", m.use(h.likeReaction))
+	mux.HandleFunc("/dislike", m.use(h.dislikeReaction))
 
 	// mux.HandleFunc("/profile/", m.use(h.userProfilePage))
 

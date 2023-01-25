@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"forum/models"
+	"forum/internal/models"
 )
 
 type SessionStorage struct {

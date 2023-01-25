@@ -229,6 +229,11 @@ legend {
 
 .post-footer {
     display: flex;
+    justify-content: space-between;
+}
+
+.tags {
+    display: flex;
     flex-wrap: wrap;
 }
 

@@ -13,5 +13,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	app.Run(cfg)
+
+	app, err := app.InitApp(cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	app.RunApp()
 }

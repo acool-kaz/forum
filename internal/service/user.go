@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"forum/internal/models"
 	"forum/internal/storage"
-	"forum/models"
 	"regexp"
 
 	"golang.org/x/crypto/bcrypt"

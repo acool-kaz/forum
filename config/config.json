@@ -1,5 +1,8 @@
 {
-    "handler": {
+    "app": {
+        "file_server": "http://localhost:8080"
+    },
+    "http": {
         "addr": "8080",
         "write_timeout": 30,
         "read_timeout": 30

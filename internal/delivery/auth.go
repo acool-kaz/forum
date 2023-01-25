@@ -2,7 +2,7 @@ package delivery
 
 import (
 	"errors"
-	"forum/models"
+	"forum/internal/models"
 	"net/http"
 	"time"
 )
@@ -163,7 +163,7 @@ func (h *Handler) logOut(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = h.services.DeleteSessionToken(r.Context(), c.Value); err != nil {
+	if err = h.services.Session.DeleteSessionToken(r.Context(), c.Value); err != nil {
 		h.errorPage(w, r, http.StatusInternalServerError, err.Error())
 		return
 	}

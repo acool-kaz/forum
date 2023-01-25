@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"forum/models"
+	"forum/internal/models"
 	"net/http"
 	"strconv"
 	"strings"
@@ -46,26 +46,18 @@ func (h *Handler) createPost(w http.ResponseWriter, r *http.Request) {
 			h.errorPage(w, r, http.StatusBadRequest, "description field not found")
 			return
 		}
-		// file := r.MultipartForm.File["image"]
+		file := r.MultipartForm.File["image"]
 		post := models.Post{
 			UserId:      userId,
 			Title:       title[0],
 			Tags:        tags[0],
 			Description: description[0],
 		}
-		id, err := h.services.Post.Create(r.Context(), post)
+		id, err := h.services.Post.Create(r.Context(), post, file)
 		if err != nil {
 			h.errorPage(w, r, http.StatusInternalServerError, err.Error())
 			return
 		}
-		// if err := h.services.CreatePost(post); err != nil {
-		// 	if errors.Is(err, service.ErrInvalidPost) {
-		// 		h.errorPage(w, r, http.StatusBadRequest, err.Error())
-		// 		return
-		// 	}
-		// 	h.errorPage(w, r, http.StatusInternalServerError, err.Error())
-		// 	return
-		// }
 		http.Redirect(w, r, fmt.Sprintf("/post/%d", id), http.StatusSeeOther)
 	default:
 		h.errorPage(w, r, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
@@ -96,17 +88,9 @@ func (h *Handler) post(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		info := models.Info{
-			User:             user,
-			ProfileUser:      user,
-			Posts:            []models.FullPost{},
-			SimilarPosts:     []models.Post{},
-			Post:             post,
-			Notifications:    []models.Notification{},
-			PostLikes:        []string{},
-			PostDislikes:     []string{},
-			Comments:         []models.Comment{},
-			CommentsLikes:    map[int][]string{},
-			CommentsDislikes: map[int][]string{},
+			User:        user,
+			ProfileUser: user,
+			Post:        post,
 		}
 		if err := h.tmpl.ExecuteTemplate(w, "post.html", info); err != nil {
 			h.errorPage(w, r, http.StatusInternalServerError, err.Error())

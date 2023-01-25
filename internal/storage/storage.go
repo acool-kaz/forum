@@ -3,13 +3,14 @@ package storage
 import (
 	"context"
 	"database/sql"
-	"forum/models"
+	"forum/internal/models"
 )
 
 const (
 	sessionTable  = "sessions"
 	userTable     = "users"
 	postTable     = "posts"
+	imageTable    = "images"
 	tagTable      = "tags"
 	commentTable  = "comments"
 	reactionTable = "reactions"
@@ -33,6 +34,7 @@ type Post interface {
 	GetAll(ctx context.Context) ([]models.FullPost, error)
 	GetById(ctx context.Context, id uint) (models.FullPost, error)
 	Delete(ctx context.Context, id uint) error
+	SaveImages(ctx context.Context, postId uint, url string) error
 }
 
 type Tags interface {
@@ -44,20 +46,30 @@ type Comment interface {
 	GetAll(ctx context.Context, postId uint) ([]models.FullComment, error)
 }
 
+type Reaction interface {
+	CreateForPost(ctx context.Context, reaction models.Reaction) error
+	CreateForComment(ctx context.Context, reaction models.Reaction) error
+	Get(ctx context.Context, postId, commentId, userId uint) (models.Reaction, error)
+	Change(ctx context.Context, id uint, newReact int) error
+	Delete(ctx context.Context, id uint) error
+}
+
 type Storage struct {
-	Session
-	User
-	Post
-	Tags
-	Comment
+	Session  Session
+	User     User
+	Post     Post
+	Tags     Tags
+	Comment  Comment
+	Reaction Reaction
 }
 
 func NewStorage(db *sql.DB) *Storage {
 	return &Storage{
-		Session: newSessionStorage(db),
-		User:    newUserStorage(db),
-		Post:    newPostStorage(db),
-		Tags:    newTagsStorage(db),
-		Comment: newCommentStorage(db),
+		Session:  newSessionStorage(db),
+		User:     newUserStorage(db),
+		Post:     newPostStorage(db),
+		Tags:     newTagsStorage(db),
+		Comment:  newCommentStorage(db),
+		Reaction: newReactionStorage(db),
 	}
 }

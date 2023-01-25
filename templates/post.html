@@ -63,7 +63,7 @@
                         <div class="post-description">
                             {{ .Post.Description }}
                         </div>
-                        {{ if .Post.Images }}
+                        {{ if gt (len .Post.Images) 1 }}
                         <div class="img-container">
                             {{ range $index, $img := .Post.Images }}
                             <img src="{{ $img }}" alt="img-{{ $index }}" id="img-{{ $index }}">
@@ -77,24 +77,16 @@
                         <h2>Post Info</h2>
                         <div class="reaction">
                             <div class="react">
-                                <p class="tooltip">{{ .Post.Likes }}
-                                    {{ if .PostLikes }}
-                                    <span class="tooltiptext">{{ range .PostLikes }} {{ . }} <br> {{ end }}</span>
-                                    {{ end }}
-                                </p>
-                                <form class="reactPost" action="/post/like/{{ .Post.Id }}" method="post">
+                                <p class="tooltip">{{ .Post.Likes }}</p>
+                                <form class="reactPost" action="/like?post={{ .Post.Id }}&comment=0" method="post">
                                     <button id="like" {{ if not .User.Username }} disabled {{ end }}>
                                         <i id="like-i" class="bi bi-hand-thumbs-up"></i>
                                     </button>
                                 </form>
                             </div>
                             <div class="react">
-                                <p class="tooltip">{{ .Post.Dislikes }}
-                                    {{ if .PostDislikes }}
-                                    <span class="tooltiptext">{{ range .PostDislikes }} {{ . }} <br> {{ end }}</span>
-                                    {{ end }}
-                                </p>
-                                <form class="reactPost" action="/post/dislike/{{ .Post.Id }}" method="post">
+                                <p class="tooltip">{{ .Post.Dislikes }}</p>
+                                <form class="reactPost" action="/dislike?post={{ .Post.Id }}&comment=0" method="post">
                                     <button id="dislike" {{ if not .User.Username }} disabled {{ end }}>
                                         <i id="dislike-i" class="bi bi-hand-thumbs-down"></i>
                                     </button>
@@ -104,14 +96,6 @@
                         <div class="tags">
                             {{ range $tag := .Post.Tags }}
                             <a href="/?category={{ $tag }}" class="tag">{{ $tag }}</a>
-                            {{ end }}
-                        </div>
-                        <h2>Similar Posts</h2>
-                        <div class="similar-posts">
-                            {{ range .SimilarPosts }}
-                            <a href="/post/{{ .Id }}">{{ .Title}}</a><br>
-                            {{ else }}
-                            <h3>Empty</h3>
                             {{ end }}
                         </div>
                         {{ if eq .User.Username .Post.Username }}
@@ -142,7 +126,8 @@
                                             </fieldset>
                                             <fieldset>
                                                 <legend>Tags</legend>
-                                                <input type="text" name="tags" value="{{ range .Post.Tags }}{{ . }} {{ end }}" required>
+                                                <input type="text" name="tags"
+                                                    value="{{ range .Post.Tags }}{{ . }} {{ end }}" required>
                                             </fieldset>
                                             <div class="shown-categories"></div>
                                             <button class="btn">Change</button>
@@ -156,6 +141,7 @@
                 </div>
                 <h1>Comments</h1>
                 {{ $user := .User.Username }}
+                {{ $postId := .Post.Id }}
                 <div class="comments">
                     <div class="all-comments">
                         {{ range .Post.Comments }}
@@ -165,13 +151,13 @@
                             <div class="comment-info">
                                 <div class="comment-reaction">
                                     <p>{{ .Likes }}</p>
-                                    <form class="reactComment" action="/comment/like/{{ .Id }}" method="post">
+                                    <form class="reactComment" action="/like?post={{ $postId }}&comment={{ .Id }}" method="post">
                                         <button id="like {{ .Id }}">
                                             <i class="bi bi-hand-thumbs-up"></i>
                                         </button>
                                     </form>
                                     <p>{{ .Dislikes }}</p>
-                                    <form class="reactComment"  action="/comment/dislike/{{ .Id }}" method="post">
+                                    <form class="reactComment" action="/dislike?post={{ $postId }}&comment={{ .Id }}" method="post">
                                         <button id="dislike {{ .Id }}">
                                             <i class="bi bi-hand-thumbs-down"></i>
                                         </button>
@@ -233,44 +219,6 @@
         </footer>
     </article>
     <script>
-        const currentuser = '{{ .User.Username }}'
-        if (currentuser !== '') {
-            const likes = '{{ .PostLikes }}'
-            const arrLikes = likes.slice(1, likes.length - 1).split(" ")
-            if (arrLikes.includes(currentuser)) {
-                const i = document.getElementById("like-i")
-                i.style.color = 'green'
-            }
-
-            const dislikes = '{{ .PostDislikes }}'
-            const arrDislikes = dislikes.slice(1, dislikes.length - 1).split(" ")
-            if (arrDislikes.includes(currentuser)) {
-                const i = document.getElementById("dislike-i")
-                i.style.color = 'red'
-            }
-
-            const commentLikes = `{{ .CommentsLikes }}`
-            var mapLikes = JSON.parse(commentLikes)
-            Object.entries(mapLikes).forEach(element => {
-                if (element[1] != null) {
-                    if (element[1].includes(currentuser)) {
-                        const el = document.getElementById(`like ${element[0]}`)
-                        el.style.color = "green"
-                    }
-                }
-            });
-
-            const commentDislikes = `{{ .CommentsDislikes }}`
-            var mapDislikes = JSON.parse(commentDislikes)
-            Object.entries(mapDislikes).forEach(element => {
-                if (element[1] != null) {
-                    if (element[1].includes(currentuser)) {
-                        const el = document.getElementById(`dislike ${element[0]}`)
-                        el.style.color = "red"
-                    }
-                }
-            });
-        }
         const category = document.querySelector('.shown-categories')
         const outputCategory = document.querySelector('.category')
         const t = '{{ .Post.Tags }}'

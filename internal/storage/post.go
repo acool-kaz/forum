@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"forum/models"
+	"forum/internal/models"
 	"strings"
 )
 
@@ -18,8 +18,25 @@ func newPostStorage(db *sql.DB) *PostStorage {
 	}
 }
 
+func (s *PostStorage) SaveImages(ctx context.Context, postId uint, url string) error {
+	query := fmt.Sprintf("INSERT INTO %s(post_id, url) VALUES ($1, $2);", imageTable)
+
+	prep, err := s.db.PrepareContext(ctx, query)
+	if err != nil {
+		return fmt.Errorf("post storage: save images: %w", err)
+	}
+	defer prep.Close()
+
+	if _, err = prep.ExecContext(ctx, postId, url); err != nil {
+		return fmt.Errorf("post storage: save images: %w", err)
+	}
+
+	return nil
+}
+
 func (s *PostStorage) Create(ctx context.Context, post models.Post) (uint, error) {
 	query := fmt.Sprintf("INSERT INTO %s(user_id, title, description) VALUES ($1, $2, $3) RETURNING id;", postTable)
+
 	prep, err := s.db.PrepareContext(ctx, query)
 	if err != nil {
 		return 0, fmt.Errorf("post storage: create: %w", err)
@@ -35,19 +52,46 @@ func (s *PostStorage) Create(ctx context.Context, post models.Post) (uint, error
 }
 
 func (s *PostStorage) GetAll(ctx context.Context) ([]models.FullPost, error) {
+	args := []interface{}{}
+
+	filterCondition := ""
+	filter := ctx.Value(models.Filter)
+	if filter != nil {
+		switch filter.(string) {
+		case "likes-most":
+			filterCondition = " ORDER BY likes DESC"
+		case "likes-least":
+			filterCondition = " ORDER BY likes ASC"
+		case "time-new":
+			filterCondition = " ORDER BY created_at DESC"
+		case "time-old":
+			filterCondition = " ORDER BY created_at ASC"
+		}
+	}
+
+	whereCondition := ""
+	tag := ctx.Value(models.Tags)
+	if tag != nil {
+		whereCondition = fmt.Sprintf("WHERE p.id IN (SELECT post_id FROM %s WHERE name = $1)", tagTable)
+		args = append(args, tag.(string))
+	}
+
 	query := fmt.Sprintf(`
 	SELECT 
 		p.id,
 		u.username,
 		p.title,
-		GROUP_CONCAT(t.name, ' '),
+		(SELECT GROUP_CONCAT(t.name, ' ') FROM %s t WHERE t.post_id = p.id) AS tags,
 		p.description,
+		(SELECT COUNT(*) FROM %s r WHERE r.post_id = p.id AND r.comment_id IS NULL AND react=%d) AS 'likes',
+    	(SELECT COUNT(*) FROM %s r WHERE r.post_id = p.id AND r.comment_id IS NULL AND react=%d) AS 'dislikes',
 		p.created_at
 	FROM %s p 
 	INNER JOIN %s u ON u.id = p.user_id
-	INNER JOIN %s t ON t.post_id = p.id
-	GROUP BY p.id;
-	`, postTable, userTable, tagTable)
+	%s
+	GROUP BY p.id%s;
+	`, tagTable, reactionTable, models.LikeReaction, reactionTable, models.DislikeReaction, postTable, userTable, whereCondition, filterCondition)
+
 	prep, err := s.db.PrepareContext(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("post storage: get all: %w", err)
@@ -60,14 +104,14 @@ func (s *PostStorage) GetAll(ctx context.Context) ([]models.FullPost, error) {
 		tags     string
 	)
 
-	rows, err := prep.QueryContext(ctx)
+	rows, err := prep.QueryContext(ctx, args...)
 	if err != nil {
 		return nil, fmt.Errorf("post storage: get all: %w", err)
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		if err = rows.Scan(&onePost.Id, &onePost.Username, &onePost.Title, &tags, &onePost.Description, &onePost.CreatedAt); err != nil {
+		if err = rows.Scan(&onePost.Id, &onePost.Username, &onePost.Title, &tags, &onePost.Description, &onePost.Likes, &onePost.Dislikes, &onePost.CreatedAt); err != nil {
 			return nil, fmt.Errorf("post storage: get all: %w", err)
 		}
 		onePost.Tags = strings.Split(tags, " ")
@@ -83,38 +127,42 @@ func (s *PostStorage) GetById(ctx context.Context, id uint) (models.FullPost, er
 		p.id,
 		u.username,
 		p.title,
-		GROUP_CONCAT(t.name, ' '),
+		(SELECT GROUP_CONCAT(t.name, ' ') FROM %s t WHERE t.post_id = p.id),
+		IFNULL((SELECT GROUP_CONCAT(i.url, ' ') FROM %s i WHERE i.post_id = p.id), ''),
 		p.description,
-		(SELECT COUNT(*) FROM reactions r WHERE r.post_id = p.id AND reaction=1) AS 'likes',
-    	(SELECT COUNT(*) FROM reactions r WHERE r.post_id = p.id AND reaction=-1) AS 'dislikes',
+		(SELECT COUNT(*) FROM %s r WHERE r.post_id = p.id AND r.comment_id IS NULL AND react=%d) AS 'likes',
+    	(SELECT COUNT(*) FROM %s r WHERE r.post_id = p.id AND r.comment_id IS NULL AND react=%d) AS 'dislikes',
 		p.created_at
 	FROM %s p 
 	INNER JOIN %s u ON u.id = p.user_id
-	INNER JOIN %s t ON t.post_id = p.id
 	WHERE p.id = $1
 	GROUP BY p.id;
-	`, postTable, userTable, tagTable)
+	`, tagTable, imageTable, reactionTable, models.LikeReaction, reactionTable, models.DislikeReaction, postTable, userTable)
+
 	prep, err := s.db.PrepareContext(ctx, query)
 	if err != nil {
-		return models.FullPost{}, fmt.Errorf("post storage: get all: %w", err)
+		return models.FullPost{}, fmt.Errorf("post storage: get by id: %w", err)
 	}
 	defer prep.Close()
 
 	var (
 		onePost models.FullPost
 		tags    string
+		images  string
 	)
 
-	if err = prep.QueryRowContext(ctx, id).Scan(&onePost.Id, &onePost.Username, &onePost.Title, &tags, &onePost.Description, &onePost.Likes, &onePost.Dislikes, &onePost.CreatedAt); err != nil {
-		return models.FullPost{}, fmt.Errorf("post storage: get all: %w", err)
+	if err = prep.QueryRowContext(ctx, id).Scan(&onePost.Id, &onePost.Username, &onePost.Title, &tags, &images, &onePost.Description, &onePost.Likes, &onePost.Dislikes, &onePost.CreatedAt); err != nil {
+		return models.FullPost{}, fmt.Errorf("post storage: get by id: %w", err)
 	}
 	onePost.Tags = strings.Split(tags, " ")
+	onePost.Images = strings.Split(images, " ")
 
 	return onePost, nil
 }
 
 func (s *PostStorage) Delete(ctx context.Context, id uint) error {
-	query := fmt.Sprintf("DELTE FROM %s WHERE id = $1;", postTable)
+	query := fmt.Sprintf("DELETE FROM %s WHERE id = $1;", postTable)
+
 	prep, err := s.db.PrepareContext(ctx, query)
 	if err != nil {
 		return fmt.Errorf("post storage: delete: %w", err)

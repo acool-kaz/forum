@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"forum/models"
+	"forum/internal/models"
 )
 
 type CommentStorage struct {
@@ -38,13 +38,13 @@ func (s *CommentStorage) GetAll(ctx context.Context, postId uint) ([]models.Full
 		c.id,
 		u.username,
 		c.text,
-		(SELECT COUNT(*) FROM %s r WHERE r.comment_id = c.id AND reaction=1) AS 'likes',
-    	(SELECT COUNT(*) FROM %s r WHERE r.comment_id = c.id AND reaction=-1) AS 'dislikes'
+		(SELECT COUNT(*) FROM %s r WHERE r.comment_id = c.id AND react=%d) AS 'likes',
+    	(SELECT COUNT(*) FROM %s r WHERE r.comment_id = c.id AND react=%d) AS 'dislikes'
 	FROM %s c
 	INNER JOIN %s u ON u.id = c.user_id
 	WHERE c.post_id = $1
 	GROUP BY c.id;
-	`, reactionTable, reactionTable, commentTable, userTable)
+	`, reactionTable, models.LikeReaction, reactionTable, models.DislikeReaction, commentTable, userTable)
 	prep, err := s.db.PrepareContext(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("comment storage: get all: %w", err)

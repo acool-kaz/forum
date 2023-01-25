@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"forum/internal/models"
 	"forum/internal/storage"
-	"forum/models"
 	"time"
 
 	"github.com/google/uuid"

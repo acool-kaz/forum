@@ -22,6 +22,13 @@ CREATE TABLE IF NOT EXISTS posts (
 	FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
+CREATE TABLE IF NOT EXISTS images (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	post_id INTEGER,
+	url TEXT,
+	FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS tags (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	post_id INTEGER,
@@ -43,10 +50,10 @@ CREATE TABLE IF NOT EXISTS reactions (
 	post_id INTEGER,
 	comment_id INTEGER,
 	user_id INTEGER,
-	reaction INTEGER,
+	react INTEGER,
 	FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
 	FOREIGN KEY (comment_id) REFERENCES comments(id) ON DELETE CASCADE,
-	FOREIGN KEY (user_id) REFERENCES users(id)
+	FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS notifications (
@@ -55,11 +62,5 @@ CREATE TABLE IF NOT EXISTS notifications (
 	toUser TEXT,
 	description TEXT,
 	postId INT,
-	FOREIGN KEY (postId) REFERENCES post(id) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS post_images (
-	postId INTEGER,
-	image TEXT,
 	FOREIGN KEY (postId) REFERENCES post(id) ON DELETE CASCADE
 );
