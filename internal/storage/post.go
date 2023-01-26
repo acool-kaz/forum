@@ -70,10 +70,30 @@ func (s *PostStorage) GetAll(ctx context.Context) ([]models.FullPost, error) {
 	}
 
 	whereCondition := ""
+
 	tag := ctx.Value(models.Tags)
 	if tag != nil {
 		whereCondition = fmt.Sprintf("WHERE p.id IN (SELECT post_id FROM %s WHERE name = $1)", tagTable)
 		args = append(args, tag.(string))
+	}
+
+	userId := ctx.Value(models.UserId)
+
+	profilePostFilter := ctx.Value(models.ProfilePostFilter)
+	if profilePostFilter != nil {
+		switch profilePostFilter.(string) {
+		case "created":
+			whereCondition = fmt.Sprintf("WHERE u.username = (SELECT username FROM %s WHERE id = $1)", userTable)
+		case "liked":
+			whereCondition = fmt.Sprintf("WHERE p.id IN (SELECT post_id FROM %s WHERE user_id = $1 AND react=%d)", reactionTable, models.LikeReaction)
+		case "disliked":
+			whereCondition = fmt.Sprintf("WHERE p.id IN (SELECT post_id FROM %s WHERE user_id = $1 AND react=%d)", reactionTable, models.DislikeReaction)
+		case "commented":
+			whereCondition = fmt.Sprintf("WHERE p.id IN (SELECT post_id FROM %s WHERE user_id = $1)", commentTable)
+		default:
+			return nil, fmt.Errorf("post storage: get all: %w", models.ErrInvalidFilter)
+		}
+		args = append(args, userId.(uint))
 	}
 
 	query := fmt.Sprintf(`

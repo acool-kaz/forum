@@ -41,7 +41,7 @@ func (h *Handler) InitRoutes() *http.ServeMux {
 	mux.HandleFunc("/like", m.use(h.likeReaction))
 	mux.HandleFunc("/dislike", m.use(h.dislikeReaction))
 
-	// mux.HandleFunc("/profile/", m.use(h.userProfilePage))
+	mux.HandleFunc("/profile/", m.use(h.userProfilePage))
 
 	fs := http.FileServer(http.Dir("./static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))

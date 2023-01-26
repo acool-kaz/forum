@@ -7,3 +7,11 @@ type User struct {
 	Password       string `json:"password"`
 	VerifyPassword string `json:"verify_password"`
 }
+
+type userCtx string
+
+var (
+	UserId   userCtx = "user_id"
+	Username userCtx = "username"
+	Email    userCtx = "email"
+)

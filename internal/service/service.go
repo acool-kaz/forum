@@ -15,7 +15,7 @@ type Session interface {
 }
 
 type User interface {
-	GetById(ctx context.Context, id uint) (models.User, error)
+	GetOneBy(ctx context.Context) (models.User, error)
 	Create(ctx context.Context, user models.User) (uint, error)
 }
 

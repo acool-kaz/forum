@@ -18,7 +18,8 @@ func (h *Handler) homePage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userId := r.Context().Value(userId).(uint)
-	user, err := h.services.User.GetById(r.Context(), userId)
+
+	user, err := h.services.User.GetOneBy(context.WithValue(r.Context(), models.UserId, userId))
 	if err != nil {
 		h.errorPage(w, r, http.StatusInternalServerError, err.Error())
 		return

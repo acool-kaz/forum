@@ -64,20 +64,6 @@
                             <h3>{{ .ProfileUser.Email }}</h3>
                             <h1>User</h1>
                         </div>
-                        <div class="card-info">
-                            <div class="info">
-                                <i class="fa fa-pen"></i>
-                                <p>{{ .ProfileUser.CountOfPosts }}</p>
-                            </div>
-                            <div class="info">
-                                <i class="fa fa-thumbs-up"></i>
-                                <p>{{ .ProfileUser.CountOfLikes }}</p>
-                            </div>
-                            <div class="info">
-                                <i class="fa fa-comment"></i>
-                                <p>{{ .ProfileUser.CountOfComments }}</p>
-                            </div>
-                        </div>
                     </div>
                     {{ if eq .User.Username .ProfileUser.Username }}
                     <div class="user">
@@ -91,13 +77,15 @@
                     <div class="filter-posts">
                         <a href="/profile/{{ .ProfileUser.Username }}?posts=created">Created Posts</a>
                         <a href="/profile/{{ .ProfileUser.Username }}?posts=liked">Liked Posts</a>
+                        <a href="/profile/{{ .ProfileUser.Username }}?posts=disliked">Disliked Posts</a>
                         <a href="/profile/{{ .ProfileUser.Username }}?posts=commented">Commented Posts</a>
                     </div>
                     {{ range .Posts }}
+                    {{ $postCreator := .Username }}
                     <div class="post">
                         <fieldset>
                             <legend align="right">
-                                <h3>{{ .Creater }}</h3>
+                                <h3>{{ .Username }}</h3>
                             </legend>
                             <div class="post-title">
                                 <h3><a href="/post/{{ .Id }}">{{ .Title }}</a></h3>
@@ -106,11 +94,26 @@
                                 {{ .Description }}
                             </div>
                             <div class="post-footer">
-                                {{ range .Category }}
-                                <a href="/?category={{ . }}" class="tag">{{ . }}</a>
-                                {{ end }}
+                                <div class="tags">
+                                    {{ range .Tags }}
+                                    <a href="/?category={{ . }}" class="tag">{{ . }}</a>
+                                    {{ end }}
+                                </div>
+                                <a href="/post/{{ .Id }}" class="tag">More</a>
                             </div>
                         </fieldset>
+                        <div class="comments">
+                            {{ range .Comments }}
+                            {{ if eq $postCreator .Username }}
+                            <fieldset>
+                                <legend>
+                                    <h3>{{ .Username }}</h3>
+                                </legend>
+                                <div class="comment-text">{{ .Text }}</div>
+                            </fieldset>
+                            {{ end }}
+                            {{ end }}
+                        </div>
                     </div>
                     {{ end }}
                 </div>

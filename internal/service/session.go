@@ -31,24 +31,29 @@ func (s *SessionService) GenerateSessionToken(ctx context.Context, username, pas
 		tempUser models.User
 		session  models.Session
 	)
-	tempUser, err = s.userStorage.GetByUsername(ctx, username)
+
+	tempUser, err = s.userStorage.GetOneBy(context.WithValue(ctx, models.Username, username))
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return models.Session{}, fmt.Errorf("session service: generate session token: %w", models.ErrUserNotFound)
 		}
 		return models.Session{}, fmt.Errorf("session service: generate session token: %w", err)
 	}
+
 	if err = compareHashAndPassword(tempUser.Password, password); err != nil {
 		return models.Session{}, fmt.Errorf("session service: generate session token: %w", models.ErrUserNotFound)
 	}
+
 	session = models.Session{
 		UserId:    tempUser.Id,
 		Token:     uuid.NewString(),
 		ExpiresAt: time.Now().Add(12 * time.Hour),
 	}
+
 	if err = s.sessionStorage.Create(ctx, session); err != nil {
 		return models.Session{}, fmt.Errorf("session service: generate session token: %w", err)
 	}
+
 	return session, nil
 }
 
@@ -57,6 +62,7 @@ func (s *SessionService) ParseSessionToken(ctx context.Context, token string) (m
 	if err != nil {
 		return models.Session{}, fmt.Errorf("session service: parse session token: %w", err)
 	}
+
 	return session, nil
 }
 
@@ -64,6 +70,7 @@ func (s *SessionService) DeleteSessionToken(ctx context.Context, token string) e
 	if err := s.sessionStorage.Delete(ctx, token); err != nil {
 		return fmt.Errorf("session service: delete session token: %w", err)
 	}
+
 	return nil
 }
 

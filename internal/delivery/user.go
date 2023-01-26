@@ -1,45 +1,66 @@
 package delivery
 
 import (
+	"context"
+	"database/sql"
 	"errors"
-	"forum/internal/service"
-	"forum/models"
+	"fmt"
+	"forum/internal/models"
 	"net/http"
 	"strings"
 )
 
 func (h *Handler) userProfilePage(w http.ResponseWriter, r *http.Request) {
-	user := h.ctx.Value(uCtx).(models.User)
-	username := strings.TrimPrefix(r.URL.Path, "/profile/")
-	userPage, err := h.services.GetUserByUsername(username)
-	if err != nil {
-		h.errorPage(w, r, http.StatusNotFound, err.Error())
-		return
-	}
 	if r.Method != http.MethodGet {
 		h.errorPage(w, r, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
 		return
 	}
-	posts, err := h.services.GetPostByUsername(userPage.Username, r.URL.Query())
+
+	username := strings.TrimPrefix(r.URL.Path, "/profile/")
+
+	profileUser, err := h.services.User.GetOneBy(context.WithValue(r.Context(), models.Username, username))
 	if err != nil {
-		if errors.Is(err, service.ErrInvalidQuery) {
-			h.errorPage(w, r, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
+		if errors.Is(err, sql.ErrNoRows) {
+			h.errorPage(w, r, http.StatusNotFound, err.Error())
 			return
 		}
 		h.errorPage(w, r, http.StatusInternalServerError, err.Error())
 		return
 	}
-	notifications, err := h.services.GetAllNotificationForUser(user)
+
+	userId := r.Context().Value(userId).(uint)
+
+	curUser, err := h.services.User.GetOneBy(context.WithValue(r.Context(), models.UserId, userId))
+	if err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			h.errorPage(w, r, http.StatusInternalServerError, err.Error())
+			return
+		}
+	}
+
+	ctx := r.Context()
+
+	postFilter := r.URL.Query().Get("posts")
+	if postFilter == "" {
+		http.Redirect(w, r, fmt.Sprintf("/profile/%s?posts=created", username), http.StatusSeeOther)
+		return
+	}
+
+	ctx = context.WithValue(ctx, models.ProfilePostFilter, postFilter)
+	ctx = context.WithValue(ctx, models.UserId, profileUser.Id)
+
+	posts, err := h.services.Post.GetAll(ctx)
 	if err != nil {
 		h.errorPage(w, r, http.StatusInternalServerError, err.Error())
 		return
 	}
+
 	info := models.Info{
-		User:          user,
-		ProfileUser:   userPage,
-		Posts:         posts,
-		Notifications: notifications,
+		User:        curUser,
+		ProfileUser: profileUser,
+		Posts:       posts,
 	}
+
 	if err := h.tmpl.ExecuteTemplate(w, "user.html", info); err != nil {
 		h.errorPage(w, r, http.StatusInternalServerError, err.Error())
 	}

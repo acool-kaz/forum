@@ -23,9 +23,7 @@ type Session interface {
 }
 
 type User interface {
-	GetByUsername(ctx context.Context, username string) (models.User, error)
-	GetByEmail(ctx context.Context, email string) (models.User, error)
-	GetById(ctx context.Context, id uint) (models.User, error)
+	GetOneBy(ctx context.Context) (models.User, error)
 	Create(ctx context.Context, user models.User) (uint, error)
 }
 

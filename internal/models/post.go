@@ -27,6 +27,7 @@ type FullPost struct {
 type postFilterCtx string
 
 var (
-	Tags   postFilterCtx = "tags"
-	Filter postFilterCtx = "filter"
+	Tags              postFilterCtx = "tags"
+	Filter            postFilterCtx = "filter"
+	ProfilePostFilter postFilterCtx = "profile_post_filter"
 )

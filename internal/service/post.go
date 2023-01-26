@@ -125,6 +125,17 @@ func (s *PostService) GetAll(ctx context.Context) ([]models.FullPost, error) {
 			return nil, fmt.Errorf("post service: get all: %w", err)
 		}
 	}
+
+	profilePostFilter := ctx.Value(models.ProfilePostFilter)
+	if profilePostFilter != nil && profilePostFilter.(string) == "commented" {
+		for i, post := range allPosts {
+			allPosts[i].Comments, err = s.commentStorage.GetAll(ctx, post.Id)
+			if err != nil {
+				return nil, fmt.Errorf("post service: get all: %w", err)
+			}
+		}
+	}
+
 	return allPosts, nil
 }
 

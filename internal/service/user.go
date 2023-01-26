@@ -22,8 +22,8 @@ func newUserService(userStorage storage.User) *UserService {
 	}
 }
 
-func (s *UserService) GetById(ctx context.Context, id uint) (models.User, error) {
-	user, err := s.userStorage.GetById(ctx, id)
+func (s *UserService) GetOneBy(ctx context.Context) (models.User, error) {
+	user, err := s.userStorage.GetOneBy(ctx)
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
 			return models.User{}, fmt.Errorf("user service: get by id: %w", err)
@@ -40,12 +40,12 @@ func (s *UserService) Create(ctx context.Context, user models.User) (uint, error
 	if err = validUser(user); err != nil {
 		return 0, fmt.Errorf("user service: create: %w", err)
 	}
-	if _, err = s.userStorage.GetByUsername(ctx, user.Username); err != nil {
+	if _, err = s.userStorage.GetOneBy(context.WithValue(ctx, models.Username, user.Username)); err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
 			return 0, fmt.Errorf("user service: create: %w: username exist", models.ErrInvalidUser)
 		}
 	}
-	if _, err = s.userStorage.GetByEmail(ctx, user.Email); err != nil {
+	if _, err = s.userStorage.GetOneBy(context.WithValue(ctx, models.Username, user.Username)); err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
 			return 0, fmt.Errorf("user service: create: %w: email exist", models.ErrInvalidUser)
 		}

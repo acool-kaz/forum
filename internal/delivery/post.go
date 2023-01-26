@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -82,7 +83,7 @@ func (h *Handler) post(w http.ResponseWriter, r *http.Request) {
 	}
 	switch r.Method {
 	case http.MethodGet:
-		user, err := h.services.User.GetById(r.Context(), userId)
+		user, err := h.services.User.GetOneBy(context.WithValue(r.Context(), models.UserId, userId))
 		if err != nil {
 			h.errorPage(w, r, http.StatusInternalServerError, err.Error())
 			return
