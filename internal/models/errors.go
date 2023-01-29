@@ -15,6 +15,5 @@ var (
 
 // post errors
 var (
-	ErrInvalidImage  = errors.New("invalid image")
 	ErrInvalidFilter = errors.New("invalid filter")
 )

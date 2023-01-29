@@ -18,17 +18,36 @@ func newPostStorage(db *sql.DB) *PostStorage {
 	}
 }
 
-func (s *PostStorage) SaveImages(ctx context.Context, postId uint, url string) error {
-	query := fmt.Sprintf("INSERT INTO %s(post_id, url) VALUES ($1, $2);", imageTable)
+func (s *PostStorage) Update(ctx context.Context, id uint, description, title string) error {
+	args := []interface{}{}
+	argsStr := []string{}
+	argsNum := 1
+
+	if description != "" {
+		argsStr = append(argsStr, fmt.Sprintf("description = $%d", argsNum))
+		args = append(args, description)
+		argsNum++
+	}
+
+	if title != "" {
+		argsStr = append(argsStr, fmt.Sprintf("title = $%d", argsNum))
+		args = append(args, title)
+		argsNum++
+	}
+
+	query := fmt.Sprintf("UPDATE %s SET %s WHERE id = $%d", postTable, strings.Join(argsStr, ", "), argsNum)
+
+	args = append(args, id)
 
 	prep, err := s.db.PrepareContext(ctx, query)
 	if err != nil {
-		return fmt.Errorf("post storage: save images: %w", err)
+		return fmt.Errorf("post storage: update: %w", err)
 	}
 	defer prep.Close()
 
-	if _, err = prep.ExecContext(ctx, postId, url); err != nil {
-		return fmt.Errorf("post storage: save images: %w", err)
+	_, err = prep.ExecContext(ctx, args...)
+	if err != nil {
+		return fmt.Errorf("post storage: update: %w", err)
 	}
 
 	return nil

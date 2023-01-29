@@ -45,7 +45,7 @@ func NewService(storages *storage.Storage, cfg *config.Config) *Service {
 	return &Service{
 		Session:  newSessionService(storages.Session, storages.User),
 		User:     newUserService(storages.User),
-		Post:     newPostService(storages.Post, storages.Tags, storages.Comment, cfg),
+		Post:     newPostService(storages.Post, storages.Tags, storages.Comment, storages.Image, cfg),
 		Comment:  newCommentService(storages.Comment),
 		Reaction: newReactionService(storages.Reaction),
 	}

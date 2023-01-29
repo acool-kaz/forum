@@ -11,6 +11,12 @@ type Post struct {
 	CreatedAt   time.Time `json:"created_at"`
 }
 
+type UpdatePost struct {
+	Title       string `json:"title"`
+	Tags        string `json:"tags"`
+	Description string `json:"description"`
+}
+
 type FullPost struct {
 	Id          uint          `json:"id"`
 	Likes       uint          `json:"likes"`

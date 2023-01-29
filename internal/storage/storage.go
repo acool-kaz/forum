@@ -32,6 +32,10 @@ type Post interface {
 	GetAll(ctx context.Context) ([]models.FullPost, error)
 	GetById(ctx context.Context, id uint) (models.FullPost, error)
 	Delete(ctx context.Context, id uint) error
+	Update(ctx context.Context, id uint, description, title string) error
+}
+
+type Image interface {
 	SaveImages(ctx context.Context, postId uint, url string) error
 }
 
@@ -59,6 +63,7 @@ type Storage struct {
 	Tags     Tags
 	Comment  Comment
 	Reaction Reaction
+	Image    Image
 }
 
 func NewStorage(db *sql.DB) *Storage {
@@ -69,5 +74,6 @@ func NewStorage(db *sql.DB) *Storage {
 		Tags:     newTagsStorage(db),
 		Comment:  newCommentStorage(db),
 		Reaction: newReactionStorage(db),
+		Image:    newImageStorage(db),
 	}
 }
